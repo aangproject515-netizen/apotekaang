@@ -1107,8 +1107,10 @@
         return;
       }
 
-      // Validasi murni berdasarkan password yang tersimpan di Google Sheets
-      if (typedPin !== u.password) {
+      // Konversi password dari GSheet ke string untuk menghindari perbedaan tipe data angka vs teks
+      const expectedPassword = String(u.password !== undefined && u.password !== null ? u.password : "").trim();
+
+      if (typedPin !== expectedPassword) {
         alert("PIN / Password salah! Silakan periksa kembali password di Google Sheets.");
         return;
       }
