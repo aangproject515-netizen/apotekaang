@@ -866,8 +866,9 @@
   </div>
 
   <!-- SCRIPT UTAMA PHARMA DENGAN SUPER ADMIN & RBAC -->
+ <!-- SCRIPT UTAMA PHARMA MURNI DINAMIS DARI GOOGLE SHEETS -->
   <script>
-    const DEFAULT_PHARMA_GAS_URL = 'https://script.google.com/macros/s/AKfycbyRAHO8ZXrRPNHnN0xft--CiwUlisYt_831KfkcudYK9JBTQ9tIhRNvTs_SDFhKef3a/exec';
+    const DEFAULT_PHARMA_GAS_URL = 'https://script.google.com/macros/s/AKfycbwfhWeM3qL7SkdRIjPSi1ZFbdmfVURMp0x7M9d7j78cjpBEB9vNfQxzZCA-lnW3c1E6_Q/exec';
     let PHARMA_GAS_URL = localStorage.getItem('AANG_PHARMA_GAS_URL') || DEFAULT_PHARMA_GAS_URL;
     let selectedPOSPayment = 'Tunai';
     let currentLoggedInUser = JSON.parse(sessionStorage.getItem('AANG_PHARMA_ACTIVE_USER') || 'null');
@@ -895,13 +896,6 @@
         description: "Validasi e-Prescribing dari dokter, pengelolaan inventaris obat (FIFO/FEFO), peracikan, dan kasir POS.",
         features: ["Validasi e-Prescribing", "Manajemen Stok Obat (FIFO/FEFO)", "POS Penjualan Resep", "Antrean Farmasi"]
       },
-      "Apoteker / Petugas Farmasi": {
-        allowedTabs: ['dashboard', 'antrean', 'eprescribing', 'pos', 'stok'],
-        badgeText: "FARMASI & APOTEK",
-        icon: "fa-mortar-pestle text-emerald-600",
-        description: "Validasi e-Prescribing dari dokter, pengelolaan inventaris obat (FIFO/FEFO), peracikan, dan kasir POS.",
-        features: ["Validasi e-Prescribing", "Manajemen Stok Obat", "POS Penjualan Resep", "Antrean Farmasi"]
-      },
       "Dokter": {
         allowedTabs: ['dashboard', 'antrean', 'eprescribing', 'penunjang'],
         badgeText: "DOKTER KLINIK",
@@ -916,21 +910,7 @@
         description: "Transaksi penjualan obat bebas & resep, diskon resep, pembayaran (Tunai/Debit/QRIS), dan pencetakan struk resmi yang terhubung ke RS.",
         features: ["Point of Sales (POS)", "Pembayaran Tunai/QRIS/Debit", "Pencetakan Struk", "Integrasi Billing RS"]
       },
-      "Kasir / Billing": {
-        allowedTabs: ['dashboard', 'pos'],
-        badgeText: "KASIR APOTEK",
-        icon: "fa-cash-register text-amber-600",
-        description: "Transaksi penjualan obat bebas & resep, diskon resep, pembayaran (Tunai/Debit/QRIS), dan pencetakan struk resmi yang terhubung ke RS.",
-        features: ["Point of Sales (POS)", "Pembayaran Tunai/QRIS/Debit", "Pencetakan Struk", "Integrasi Billing RS"]
-      },
       "Gudang": {
-        allowedTabs: ['dashboard', 'stok'],
-        badgeText: "GUDANG FARMASI",
-        icon: "fa-boxes-stacked text-orange-600",
-        description: "Manajemen stok masuk/keluar, lokasi rak, opname gudang, dan pemantauan tanggal kedaluwarsa obat.",
-        features: ["Stok & Gudang Farmasi", "Monitoring SKU & Rak", "Alert Obat Kritis/Kedaluwarsa"]
-      },
-      "Petugas Inventaris": {
         allowedTabs: ['dashboard', 'stok'],
         badgeText: "GUDANG FARMASI",
         icon: "fa-boxes-stacked text-orange-600",
@@ -939,30 +919,11 @@
       }
     };
 
-    const DEFAULT_PHARMA_USERS = [
-      { user_id: "USR-00", full_name: "A'ang Syahroni (Super Admin)", role: "Super Admin", module_access: "Semua Modul & Akses Penuh", user_status: "Aktif", password: "superadminpassword" },
-      { user_id: "USR-01", full_name: "Dr. Aang", role: "Administrator", module_access: "Semua", user_status: "Aktif", password: "aang123" },
-      { user_id: "USR-02", full_name: "Siti Rahma", role: "Apoteker", module_access: "POS, Stok", user_status: "Aktif", password: "apoteksiti" },
-      { user_id: "USR-03", full_name: "Budi Santoso", role: "Dokter", module_access: "Prescribing, Pasien", user_status: "Aktif", password: "dokterbudi" },
-      { user_id: "USR-04", full_name: "Dewi Puspita", role: "Kasir", module_access: "POS, Billing", user_status: "Aktif", password: "dewikasir" },
-      { user_id: "USR-05", full_name: "Agus Salim", role: "Gudang", module_access: "Stok, Laporan", user_status: "Aktif", password: "agusgudang" }
-    ];
-
     let appState = {
-      patientsQueue: [
-        { queue_id: "Q-001", queue_number: "A015", patient_id: "RM-123456", full_name: "Budi Santoso", age: 39, phone: "0812-3456-7890", diagnosis: "Hipertensi Ringan", allergy: "Tidak Ada", queue_status: "Sedang Dilayani" },
-        { queue_id: "Q-002", queue_number: "A016", patient_id: "RM-01234567", full_name: "Siti Aminah", age: 65, phone: "0812-9876-5432", diagnosis: "Pneumonia (J18.9)", allergy: "Debu & Dingin", queue_status: "Menunggu" },
-        { queue_id: "Q-003", queue_number: "A017", patient_id: "RM-124123", full_name: "Agus Setiawan", age: 32, phone: "0813-4567-8901", diagnosis: "ISPA & Demam", allergy: "Tidak Ada", queue_status: "Menunggu" }
-      ],
-      medicineStock: [
-        { sku: "AMX001", drug_name: "Amoxicillin 500mg", category: "Antibiotik", current_stock: 1250, unit: "Tablet", price: 30000, rack_location: "A1-02-03", warehouse_location: "Gudang Utama", stock_status: "Aman", expiry_date: "2027-12-31" },
-        { sku: "PCT005", drug_name: "Paracetamol 100mg Syr", category: "Analgesik & Antipiretik", current_stock: 75, unit: "Botol", price: 25000, rack_location: "B2-01-01", warehouse_location: "Gudang Utama", stock_status: "Menipis", expiry_date: "2027-06-30" },
-        { sku: "IBP012", drug_name: "Ibuprofen 400mg", category: "Antiinflamasi", current_stock: 500, unit: "Tablet", price: 20000, rack_location: "A1-02-04", warehouse_location: "Gudang Utama", stock_status: "Aman", expiry_date: "2027-09-15" }
-      ],
-      supportingExams: [
-        { exam_id: "EXM-001", patient_id: "RM-123456", patient_name: "Budi Santoso", exam_type: "Darah Lengkap (CBC)", exam_status: "Selesai", exam_date: "10/10/2023", result_summary: "Hb: 14.2 g/dL, Leukosit: 7.400 /uL (Normal)", attachment_type: "PDF" }
-      ],
-      users: [...DEFAULT_PHARMA_USERS],
+      patientsQueue: [],
+      medicineStock: [],
+      supportingExams: [],
+      users: [],
       epresItems: [
         { drug_name: "Amlodipine 5mg Tablet", signa: "S.1.dd.1 p.c. (1x sehari)", qty: 30, price: 25000 },
         { drug_name: "Paracetamol 500mg Tablet", signa: "S.3.dd.1 p.r.n. (bila perlu)", qty: 20, price: 12000 }
@@ -988,31 +949,51 @@
       return PHARMA_RBAC_CONFIG["Super Admin"];
     }
 
-    function ensureSuperAdminAndRolesExist() {
-      DEFAULT_PHARMA_USERS.forEach(defUser => {
-        const exists = appState.users.some(u => u.user_id === defUser.user_id || String(u.role).toLowerCase() === String(defUser.role).toLowerCase());
-        if (!exists) appState.users.push(defUser);
-      });
-      appState.users.sort((a, b) => {
-        if (a.role === "Super Admin") return -1;
-        if (b.role === "Super Admin") return 1;
-        return String(a.user_id).localeCompare(String(b.user_id));
-      });
+    // --- TARIK DATA DINAMIS DARI GOOGLE SHEETS ---
+    async function fetchPharmacyData() {
+      try {
+        const response = await fetch(PHARMA_GAS_URL + "?action=init");
+        const json = await response.json();
+        if (json.status === "success" && json.data) {
+          if (json.data.patientsQueue && json.data.patientsQueue.length > 0) appState.patientsQueue = json.data.patientsQueue;
+          if (json.data.medicineStock && json.data.medicineStock.length > 0) appState.medicineStock = json.data.medicineStock;
+          if (json.data.supportingExams && json.data.supportingExams.length > 0) appState.supportingExams = json.data.supportingExams;
+          if (json.data.users && json.data.users.length > 0) {
+            appState.users = json.data.users;
+          }
+          document.getElementById('connBadge').className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300";
+          document.getElementById('connBadge').innerHTML = '<i class="fa-solid fa-cloud-check mr-1"></i> Terhubung ke GSheet';
+        }
+      } catch (err) {
+        console.warn("Gagal terhubung ke GAS, menggunakan fallback data lokal:", err);
+      }
+      
+      // Jika sheet Users kosong/gagal fetch, sediakan minimal data agar dropdown tetap muncul
+      if (!appState.users || appState.users.length === 0) {
+        appState.users = [
+          { user_id: "USR-01", full_name: "Dr. Aang", role: "Administrator", module_access: "Semua Modul", user_status: "Aktif", password: "123" },
+          { user_id: "USR-02", full_name: "Siti Rahma", role: "Apoteker", module_access: "POS, Stok", user_status: "Aktif", password: "123" }
+        ];
+      }
+
+      renderLoginDropdown();
+      renderAll();
+      checkAuthSession();
     }
 
-    // --- AUTENTIKASI LOGIN FARMASI ---
+    // --- AUTENTIKASI LOGIN FARMASI MURNI DARI DATA SHEETS ---
     function renderLoginDropdown() {
-      ensureSuperAdminAndRolesExist();
       const selectEl = document.getElementById('login-user-select');
       if (!selectEl) return;
-      const activeUsers = appState.users.filter(u => u.user_status === 'Aktif');
+      const activeUsers = appState.users.filter(u => String(u.user_status).toLowerCase() === 'aktif');
       const listToUse = activeUsers.length > 0 ? activeUsers : appState.users;
-      selectEl.innerHTML = listToUse.map(u => `<option value="${u.user_id}">${u.full_name} - [${u.role}]</option>`).join('');
+      
+      selectEl.innerHTML = listToUse.map(u => `<option value="${u.user_id}">${u.full_name} — [${u.role}]</option>`).join('');
 
       const quickContainer = document.getElementById('quickRoleButtonsContainer');
       if (quickContainer) {
         quickContainer.innerHTML = listToUse.map(u => {
-          const isSuper = u.role === 'Super Admin';
+          const isSuper = String(u.role).toLowerCase().includes('super');
           return `
             <button type="button" onclick="selectQuickLoginUser('${u.user_id}')" class="px-2.5 py-1 rounded-xl border text-[11px] font-bold transition ${isSuper ? 'bg-amber-100 border-amber-300 text-amber-900 hover:bg-amber-200' : 'bg-pink-50 border-pink-200 text-pharmaDark hover:bg-pastelPink'}">
               ${isSuper ? '<i class="fa-solid fa-crown text-amber-500 mr-1"></i>' : ''}${u.role}
@@ -1037,7 +1018,7 @@
       const u = appState.users.find(x => x.user_id === selectEl.value) || appState.users[0];
       if (u) {
         const cfg = getRoleConfig(u.role);
-        document.getElementById('login-preview-role').innerText = u.role || 'Super Admin';
+        document.getElementById('login-preview-role').innerText = u.role || 'Apoteker';
         const badgesContainer = document.getElementById('login-preview-badges');
         if (badgesContainer) {
           badgesContainer.innerHTML = cfg.features.map(f => `
@@ -1061,7 +1042,7 @@
 
       document.getElementById('banner-user-name').innerText = currentLoggedInUser.full_name;
       document.getElementById('banner-user-role').innerText = currentLoggedInUser.role;
-      document.getElementById('banner-user-access').innerText = "Akses Modul: " + cfg.features.join(" â€¢ ");
+      document.getElementById('banner-user-access').innerText = "Akses Modul: " + cfg.features.join(" • ");
       document.getElementById('sidebar-role-badge').innerText = cfg.badgeText;
 
       allTabs.forEach(tabId => {
@@ -1102,12 +1083,12 @@
         alert("Akun user tidak ditemukan!");
         return;
       }
-      if (u.user_status !== 'Aktif') {
+      if (String(u.user_status).toLowerCase() !== 'aktif') {
         alert(`Akun ${u.full_name} sedang berstatus TIDAK AKTIF!`);
         return;
       }
 
-      // Konversi password dari GSheet ke string untuk menghindari perbedaan tipe data angka vs teks
+      // Validasi murni membaca password dari data Google Sheets
       const expectedPassword = String(u.password !== undefined && u.password !== null ? u.password : "").trim();
 
       if (typedPin !== expectedPassword) {
@@ -1120,6 +1101,7 @@
       checkAuthSession();
       switchTab('dashboard');
     }
+
     function handleLogout() {
       currentLoggedInUser = null;
       sessionStorage.removeItem('AANG_PHARMA_ACTIVE_USER');
@@ -1130,11 +1112,7 @@
       if (currentLoggedInUser) {
         const cfg = getRoleConfig(currentLoggedInUser.role);
         if (!cfg.allowedTabs.includes(tabId)) {
-          alert(`AKSES DIBATASI (RBAC):
-
-Akun Anda (${currentLoggedInUser.role}) tidak memiliki izin mengakses modul ini.
-
-Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
+          alert(`AKSES DIBATASI (RBAC):\n\nAkun Anda (${currentLoggedInUser.role}) tidak memiliki izin mengakses modul ini.\n\nAkses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
           return;
         }
       }
@@ -1150,7 +1128,7 @@ Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
     function renderAll() {
       document.getElementById('stat-queue-count').innerText = appState.patientsQueue.length + " Pasien";
       document.getElementById('stat-stock-count').innerText = appState.medicineStock.length + " SKU";
-      const activeUsers = appState.users.filter(u => u.user_status === 'Aktif').length;
+      const activeUsers = appState.users.filter(u => String(u.user_status).toLowerCase() === 'aktif').length;
       document.getElementById('stat-user-count').innerText = activeUsers + " User";
       renderQueueModule();
       renderEPresModule();
@@ -1163,6 +1141,7 @@ Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
     // FUNGSI MODUL FARMASI LAINNYA
     function renderQueueModule() {
       const activeBox = document.getElementById('queueActiveContainer');
+      if (!activeBox) return;
       const topThree = appState.patientsQueue.slice(0, 3);
       activeBox.innerHTML = topThree.map(q => `
         <div class="p-4 rounded-2xl border-2 border-pink-100 bg-white flex justify-between items-center text-xs">
@@ -1170,12 +1149,14 @@ Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
         </div>
       `).join('');
       const grid = document.getElementById('registeredPatientsGrid');
-      grid.innerHTML = appState.patientsQueue.map(p => `
-        <div class="p-3.5 rounded-2xl border border-pink-200 bg-pink-50/40 text-xs">
-          <p class="font-extrabold text-sm text-pharmaDark">${p.full_name}</p>
-          <p class="text-gray-600">RM: ${p.patient_id} - ${p.queue_number}</p>
-        </div>
-      `).join('');
+      if (grid) {
+        grid.innerHTML = appState.patientsQueue.map(p => `
+          <div class="p-3.5 rounded-2xl border border-pink-200 bg-pink-50/40 text-xs">
+            <p class="font-extrabold text-sm text-pharmaDark">${p.full_name}</p>
+            <p class="text-gray-600">RM: ${p.patient_id} • ${p.queue_number}</p>
+          </div>
+        `).join('');
+      }
     }
 
     async function callNextQueuePatient() { alert("Memanggil antrean berikutnya..."); }
@@ -1192,6 +1173,7 @@ Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
 
     function renderEPresModule() {
       const tbody = document.getElementById('epresTableBody');
+      if (!tbody) return;
       tbody.innerHTML = appState.epresItems.map((item, idx) => `
         <tr>
           <td class="py-2.5 px-3 font-extrabold text-teal-800">${idx + 1}. R/</td>
@@ -1208,6 +1190,7 @@ Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
 
     function renderPenunjangModule() {
       const tbody = document.getElementById('examTableBody');
+      if (!tbody) return;
       tbody.innerHTML = appState.supportingExams.map((ex, idx) => `
         <tr>
           <td class="py-3 px-3 font-bold">${idx + 1}</td>
@@ -1226,6 +1209,7 @@ Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
 
     function renderPOSModule() {
       const tbody = document.getElementById('posCartTableBody');
+      if (!tbody) return;
       tbody.innerHTML = appState.posCart.map((item, idx) => `
         <tr>
           <td class="py-3 px-3 font-bold">${idx + 1}</td>
@@ -1241,6 +1225,7 @@ Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
 
     function renderPOSQuickPills() {
       const container = document.getElementById('posQuickPillsContainer');
+      if (!container) return;
       container.innerHTML = appState.medicineStock.map(m => `
         <button type="button" onclick="addDrugToPOSCart('${m.sku}')" class="quick-pill px-3 py-1.5 rounded-xl border border-pink-200 bg-pink-50/70 text-xs font-extrabold text-pharmaDark shadow-sm">
           [${m.drug_name}]
@@ -1262,6 +1247,7 @@ Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
 
     function renderStockModule() {
       const tbody = document.getElementById('stockTableBody');
+      if (!tbody) return;
       tbody.innerHTML = appState.medicineStock.map((m, idx) => `
         <tr>
           <td class="py-3 px-3 font-extrabold">${idx + 1}. ${m.drug_name}</td>
@@ -1281,11 +1267,11 @@ Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
     function handleSaveMedicineSubmit(e) { e.preventDefault(); alert("Stok obat disimpan!"); closeMedicineModal(); }
 
     function renderUsersModule() {
-      ensureSuperAdminAndRolesExist();
       const tbody = document.getElementById('usersTableBody');
+      if (!tbody) return;
       tbody.innerHTML = appState.users.map(u => `
         <tr>
-          <td class="py-3 px-3 font-extrabold text-pharmaDark">${u.role === 'Super Admin' ? '<i class="fa-solid fa-crown text-amber-500 mr-1"></i>' : ''}${u.full_name}</td>
+          <td class="py-3 px-3 font-extrabold text-pharmaDark">${String(u.role).toLowerCase().includes('super') ? '<i class="fa-solid fa-crown text-amber-500 mr-1"></i>' : ''}${u.full_name}</td>
           <td class="py-3 px-3 font-bold text-pink-700">${u.role}</td>
           <td class="py-3 px-3 text-xs text-gray-600">${u.module_access}</td>
           <td class="py-3 px-3 text-center"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">${u.user_status}</span></td>
@@ -1295,23 +1281,30 @@ Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
       const counts = {};
       appState.users.forEach(u => { counts[u.role] = (counts[u.role] || 0) + 1; });
       const summaryBox = document.getElementById('roleSummaryContainer');
-      summaryBox.innerHTML = Object.keys(counts).map(role => `
-        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-pink-50/70 to-white border border-pink-200 flex justify-between items-center">
-          <div><p class="font-extrabold text-sm text-pharmaDark">${role}</p></div>
-          <span class="px-3 py-1 rounded-xl bg-white border border-pink-200 font-extrabold text-pink-600">${counts[role]} Akun</span>
-        </div>
-      `).join('');
+      if (summaryBox) {
+        summaryBox.innerHTML = Object.keys(counts).map(role => `
+          <div class="p-3.5 rounded-2xl bg-gradient-to-r from-pink-50/70 to-white border border-pink-200 flex justify-between items-center">
+            <div><p class="font-extrabold text-sm text-pharmaDark">${role}</p></div>
+            <span class="px-3 py-1 rounded-xl bg-white border border-pink-200 font-extrabold text-pink-600">${counts[role]} Akun</span>
+          </div>
+        `).join('');
+      }
     }
 
     function openNewUserPrompt() { alert("Form tambah user baru."); }
-    function syncWithBackend() { alert("Sinkronisasi data apotek berhasil!"); }
+    function syncWithBackend() { fetchPharmacyData(); alert("Sinkronisasi data dari Google Sheets berhasil!"); }
     function openConfigModal() { document.getElementById('configModal').classList.remove('hidden'); document.getElementById('configModal').classList.add('flex'); }
     function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); document.getElementById('configModal').classList.remove('flex'); }
-    function saveApiConfig() { closeConfigModal(); alert("Konfigurasi API disimpan!"); }
+    function saveApiConfig() { 
+      PHARMA_GAS_URL = document.getElementById('inputPharmaGasUrl').value.trim();
+      localStorage.setItem('AANG_PHARMA_GAS_URL', PHARMA_GAS_URL);
+      closeConfigModal(); 
+      fetchPharmacyData();
+      alert("Konfigurasi API disimpan & data disinkronkan!"); 
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
-      checkAuthSession();
-      renderAll();
+      fetchPharmacyData();
     });
   </script>
 </body>
