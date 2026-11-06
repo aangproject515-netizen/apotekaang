@@ -1107,14 +1107,9 @@
         return;
       }
 
-      let expectedPassword = u.password;
-      if (!expectedPassword) {
-        const defMatch = DEFAULT_PHARMA_USERS.find(d => d.user_id === u.user_id || d.role === u.role);
-        expectedPassword = defMatch ? defMatch.password : "123456";
-      }
-
-      if (typedPin !== expectedPassword && typedPin !== "123456" && typedPin !== u.user_id) {
-        alert("PIN / Password salah! Silakan coba lagi.");
+      // Validasi murni berdasarkan password yang tersimpan di Google Sheets
+      if (typedPin !== u.password) {
+        alert("PIN / Password salah! Silakan periksa kembali password di Google Sheets.");
         return;
       }
 
@@ -1123,7 +1118,6 @@
       checkAuthSession();
       switchTab('dashboard');
     }
-
     function handleLogout() {
       currentLoggedInUser = null;
       sessionStorage.removeItem('AANG_PHARMA_ACTIVE_USER');
