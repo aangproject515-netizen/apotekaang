@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AANG'S PHARMA - Sistem Informasi Apotek & e-Prescribing</title>
+  <!-- Tailwind CSS & Font Awesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Quicksand', 'sans-serif'] },
+          colors: {
+            pastelPink: '#FFD6E0',
+            pastelRose: '#FF9EAA',
+            pastelMint: '#D4F0F0',
+            pastelYellow: '#FFF5BA',
+            pastelPurple: '#E2D1F9',
+            pharmaDark: '#4A3B4E'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #FFF9FB; color: #4A3B4E; }
+    .pastel-card {
+      background: #FFFFFF;
+      border: 2px solid #FCE4EC;
+      border-radius: 1.25rem;
+      box-shadow: 0 6px 18px rgba(255, 158, 170, 0.12);
+    }
+    .nav-btn.active {
+      background-color: #FF9EAA;
+      color: white;
+      box-shadow: 0 4px 12px rgba(255, 158, 170, 0.4);
+    }
+    /* Wrapper gambar kartu portal (sama dengan SIMRS RS Aang Medical) */
+    .card-img-wrapper {
+      position: relative;
+      width: 100%;
+      height: 12.5rem;
+      overflow: hidden;
+      border-radius: 1rem;
+      background: linear-gradient(135deg, #FFF0F3 0%, #FFF9FB 50%, #E6F8F8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-img-wrapper img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 142%;
+      object-fit: cover;
+      object-position: top center;
+      z-index: 10;
+    }
+    .quick-pill {
+      transition: all 0.15s ease;
+    }
+    .quick-pill:hover {
+      transform: translateY(-2px);
+      background-color: #FFD6E0;
+      border-color: #FF9EAA;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      .print-area { display: block !important; border: none !important; box-shadow: none !important; }
+      body { background: #FFFFFF; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP NAVBAR -->
+  <header class="bg-gradient-to-r from-pastelPink via-pastelYellow to-pastelMint border-b-2 border-pink-200 sticky top-0 z-40 no-print">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-16 h-16 rounded-2xl bg-white border-2 border-pastelRose flex items-center justify-center shadow-sm overflow-hidden shrink-0">
+          <img src="logo_pharma.png" alt="Logo Aang's Pharma" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+          <i class="fa-solid fa-mortar-pestle text-2xl text-pastelRose hidden"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-extrabold tracking-wide text-pharmaDark">AANG'S PHARMA</h1>
+          <p class="text-xs font-bold text-pink-600">Apotek Terpercaya, e-Prescribing & Manajemen Farmasi Terintegrasi</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <span id="connBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+          <i class="fa-solid fa-bolt mr-1"></i> Mode Simulasi (Demo Aktif)
+        </span>
+        <a href="https://drive.google.com/drive/folders/1D-Uq0dhLIjI3o4DQPDZiHm6D55DPtyws?usp=sharing" target="_blank" class="px-3 py-1.5 rounded-xl bg-white hover:bg-pink-50 text-xs font-bold border-2 border-pink-200 shadow-sm transition text-pink-700">
+          <i class="fa-brands fa-google-drive mr-1"></i> Folder Drive Berkas
+        </a>
+        <button onclick="syncWithBackend()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-teal-50 text-xs font-bold border-2 border-teal-200 shadow-sm transition text-teal-700">
+          <i class="fa-solid fa-rotate mr-1"></i> Sync Data
+        </button>
+        <button onclick="openConfigModal()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-pink-50 text-xs font-bold border-2 border-pink-200 shadow-sm transition">
+          <i class="fa-solid fa-gear text-pastelRose mr-1"></i> Konfigurasi API
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <div class="max-w-7xl mx-auto w-full flex-1 flex flex-col lg:flex-row gap-6 p-4 md:p-6 no-print">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="w-full lg:w-64 shrink-0">
+      <div class="pastel-card p-4 sticky top-24 space-y-2">
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 px-2 mb-2">Menu Modul Apotek</p>
+        <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn active w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-pink-50">
+          <i class="fa-solid fa-grip w-5 text-center"></i> Dashboard Portal
+        </button>
+        <button onclick="switchTab('antrean')" id="btn-antrean" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-pink-50">
+          <i class="fa-solid fa-users-viewfinder w-5 text-center"></i> Pasien & Antrean
+        </button>
+        <button onclick="switchTab('eprescribing')" id="btn-eprescribing" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-pink-50">
+          <i class="fa-solid fa-prescription w-5 text-center"></i> e-Prescribing (R/)
+        </button>
+        <button onclick="switchTab('penunjang')" id="btn-penunjang" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-pink-50">
+          <i class="fa-solid fa-microscope w-5 text-center"></i> Pemeriksaan Penunjang
+        </button>
+        <button onclick="switchTab('pos')" id="btn-pos" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-pink-50">
+          <i class="fa-solid fa-cash-register w-5 text-center"></i> Point of Sales (POS)
+        </button>
+        <button onclick="switchTab('stok')" id="btn-stok" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-pink-50">
+          <i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Stok & Gudang Farmasi
+        </button>
+        <button onclick="switchTab('users')" id="btn-users" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-pink-50">
+          <i class="fa-solid fa-user-shield w-5 text-center"></i> Manajemen User
+        </button>
+      </div>
+    </aside>
+
+    <!-- CONTENT AREA -->
+    <main class="flex-1 space-y-6">
+
+      <!-- =================================================================== -->
+      <!-- 1. DASHBOARD PORTAL UTAMA (HALAMAN 1 PDF)                           -->
+      <!-- =================================================================== -->
+      <section id="tab-dashboard" class="tab-section space-y-6">
+        <div class="pastel-card p-6 bg-gradient-to-br from-pink-50 via-white to-teal-50">
+          <div class="flex flex-col sm:flex-row items-center gap-5">
+            <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl border-2 border-pink-200 shadow-md bg-white overflow-hidden flex items-center justify-center shrink-0">
+              <img src="logo_pharma.png" alt="Logo Aang's Pharma" class="w-full h-full object-contain scale-110" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+              <div class="hidden text-center p-3">
+                <i class="fa-solid fa-user-doctor text-5xl text-pastelRose"></i>
+                <p class="text-[11px] font-extrabold text-pharmaDark mt-2">AANG'S PHARMA</p>
+              </div>
+            </div>
+            <div class="text-center sm:text-left">
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-pink-100 text-pink-800 border border-pink-200">SISTEM INFORMASI FARMASI & KLINIK</span>
+              <h2 class="text-2xl font-extrabold text-pharmaDark mt-2">Selamat Datang di Portal AANG'S PHARMA</h2>
+              <p class="text-sm text-gray-600 mt-1">Pilih modul layanan di bawah untuk mengelola antrean pasien, resep elektronik (e-Prescribing), pemeriksaan penunjang, kasir POS apotek, hingga gudang farmasi secara real-time.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
+            <div class="bg-white p-4 rounded-2xl border border-pink-200 shadow-sm">
+              <span class="text-xs text-gray-500 font-bold">Pasien & Antrean</span>
+              <p id="stat-queue-count" class="text-2xl font-extrabold text-pink-600 mt-1">5 Pasien</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-teal-200 shadow-sm">
+              <span class="text-xs text-gray-500 font-bold">e-Resep Aktif</span>
+              <p id="stat-pres-count" class="text-2xl font-extrabold text-teal-600 mt-1">2 Resep</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-sm">
+              <span class="text-xs text-gray-500 font-bold">Total Item Obat (SKU)</span>
+              <p id="stat-stock-count" class="text-2xl font-extrabold text-amber-600 mt-1">9 SKU</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-purple-200 shadow-sm">
+              <span class="text-xs text-gray-500 font-bold">Petugas Aktif</span>
+              <p id="stat-user-count" class="text-2xl font-extrabold text-purple-600 mt-1">4 User</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6 Kartu Modul Portal Sesuai Halaman 1 PDF -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Modul 1 -->
+          <div onclick="switchTab('antrean')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
+            <div class="card-img-wrapper mb-3 border border-pink-100 shadow-inner">
+              <img src="01-manajemen-pasien.png" alt="Manajemen Pasien & Antrean" onerror="this.style.display='none';">
+              <i class="fa-solid fa-hospital-user text-6xl text-pastelRose group-hover:scale-110 transition"></i>
+            </div>
+            <h3 class="text-lg font-extrabold">Manajemen Pasien & Antrean</h3>
+            <p class="text-xs text-gray-500 mt-1">Pemanggilan antrean pasien (A015-A017), registrasi pasien baru, riwayat kunjungan, & cetak tiket.</p>
+          </div>
+
+          <!-- Modul 2 -->
+          <div onclick="switchTab('eprescribing')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
+            <div class="card-img-wrapper mb-3 border border-amber-100 shadow-inner">
+              <img src="02-eprescribing.png" alt="e-Prescribing" onerror="this.style.display='none';">
+              <i class="fa-solid fa-file-prescription text-6xl text-amber-500 group-hover:scale-110 transition"></i>
+            </div>
+            <h3 class="text-lg font-extrabold">e-Prescribing (Resep Elektronik)</h3>
+            <p class="text-xs text-gray-500 mt-1">Pencatatan resep dokter (R/), aturan pakai signa, riwayat alergi pasien, & pengiriman resep ke POS.</p>
+          </div>
+
+          <!-- Modul 3 -->
+          <div onclick="switchTab('penunjang')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
+            <div class="card-img-wrapper mb-3 border border-purple-100 shadow-inner">
+              <img src="03-pemeriksaan-penunjang.png" alt="Pemeriksaan Penunjang" onerror="this.style.display='none';">
+              <i class="fa-solid fa-microscope text-6xl text-purple-500 group-hover:scale-110 transition"></i>
+            </div>
+            <h3 class="text-lg font-extrabold">Pemeriksaan Penunjang</h3>
+            <p class="text-xs text-gray-500 mt-1">Hasil Darah Lengkap (CBC), X-Ray Thorax, EKG, terhubung langsung dengan modul pembuatan resep.</p>
+          </div>
+
+          <!-- Modul 4 -->
+          <div onclick="switchTab('pos')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
+            <div class="card-img-wrapper mb-3 border border-teal-100 shadow-inner">
+              <img src="04-pos-apotek.png" alt="Point of Sales Apotek" onerror="this.style.display='none';">
+              <i class="fa-solid fa-cash-register text-6xl text-teal-600 group-hover:scale-110 transition"></i>
+            </div>
+            <h3 class="text-lg font-extrabold">Point of Sales (POS) Apotek</h3>
+            <p class="text-xs text-gray-500 mt-1">Transaksi penjualan obat & tebus resep elektronik, diskon resep, pembayaran Tunai/Debit/QRIS & struk.</p>
+          </div>
+
+          <!-- Modul 5 -->
+          <div onclick="switchTab('stok')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
+            <div class="card-img-wrapper mb-3 border border-rose-100 shadow-inner">
+              <img src="05-stok-gudang.png" alt="Stok & Gudang Farmasi" onerror="this.style.display='none';">
+              <i class="fa-solid fa-clipboard-list text-6xl text-rose-500 group-hover:scale-110 transition"></i>
+            </div>
+            <h3 class="text-lg font-extrabold">Stok & Gudang Farmasi</h3>
+            <p class="text-xs text-gray-500 mt-1">Monitoring SKU obat, lokasi rak gudang, status stok (Aman, Menipis, Kritis, Kosong) & tanggal kedaluwarsa.</p>
+          </div>
+
+          <!-- Modul 6 -->
+          <div onclick="switchTab('users')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
+            <div class="card-img-wrapper mb-3 border border-indigo-100 shadow-inner">
+              <img src="06-manajemen-user.png" alt="Manajemen User" onerror="this.style.display='none';">
+              <i class="fa-solid fa-users-gear text-6xl text-indigo-500 group-hover:scale-110 transition"></i>
+            </div>
+            <h3 class="text-lg font-extrabold">Manajemen User</h3>
+            <p class="text-xs text-gray-500 mt-1">Pengaturan hak akses modul (RBAC) untuk Administrator, Apoteker, Dokter, Kasir, dan Gudang.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- 2. MANAJEMEN PASIEN & ANTREAN (HALAMAN 2 PDF)                       -->
+      <!-- =================================================================== -->
+      <section id="tab-antrean" class="tab-section hidden space-y-6">
+        <div class="pastel-card p-5 bg-gradient-to-r from-pink-50 via-white to-amber-50 flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <h2 class="text-xl font-extrabold text-pharmaDark"><i class="fa-solid fa-users-viewfinder text-pastelRose mr-2"></i>Manajemen Pasien & Antrean</h2>
+            <p class="text-xs text-gray-500">Pemantauan antrean farmasi aktif dan daftar pasien terdaftar</p>
+          </div>
+          <button onclick="openPatientModal()" class="px-4 py-2 rounded-xl bg-pastelRose hover:bg-pink-400 text-white font-bold text-xs shadow">
+            <i class="fa-solid fa-user-plus mr-1"></i> + Tambah Pasien Baru
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Kiri: Antrean Saat Ini (Budi Santoso A015, Siti Aminah A016, Agus Setiawan A017) -->
+          <div class="lg:col-span-5 pastel-card p-5 space-y-4">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
+              <h3 class="font-extrabold text-base"><i class="fa-solid fa-ticket text-teal-600 mr-2"></i>Antrean Saat Ini</h3>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800">Loket Farmasi 1</span>
+            </div>
+            <div id="queueActiveContainer" class="space-y-3"></div>
+          </div>
+
+          <!-- Kanan: Pasien Terdaftar & 3 Tombol Bawah -->
+          <div class="lg:col-span-7 pastel-card p-5 space-y-4 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="flex flex-wrap justify-between items-center border-b border-pink-100 pb-3 gap-2">
+                <h3 class="font-extrabold text-base"><i class="fa-solid fa-address-card text-pastelRose mr-2"></i>Pasien Terdaftar</h3>
+                <div class="relative w-full sm:w-64">
+                  <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+                  <input type="text" id="searchPatientQueueInput" oninput="renderQueueModule()" placeholder="Cari Pasien (Nama/No. RM)..." class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-pink-200 text-xs focus:outline-none focus:border-pastelRose">
+                </div>
+              </div>
+
+              <div id="registeredPatientsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1"></div>
+            </div>
+
+            <!-- 3 Tombol Bawah Sesuai Mockup Halaman 2 PDF -->
+            <div class="pt-4 border-t border-pink-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button onclick="callNextQueuePatient()" class="py-3 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow flex items-center justify-center gap-2 transition">
+                <i class="fa-solid fa-volume-high"></i> Panggil Antrean Berikutnya
+              </button>
+              <button onclick="openVisitHistoryModal()" class="py-3 px-4 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs border border-amber-300 flex items-center justify-center gap-2 transition">
+                <i class="fa-solid fa-clock-rotate-left"></i> Riwayat Kunjungan
+              </button>
+              <button onclick="printQueueTicketAction()" class="py-3 px-4 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-900 font-bold text-xs border border-pink-300 flex items-center justify-center gap-2 transition">
+                <i class="fa-solid fa-print"></i> Cetak Tiket Antrean
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- 3. E-PRESCRIBING / RESEP ELEKTRONIK (HALAMAN 3 PDF)                 -->
+      <!-- =================================================================== -->
+      <section id="tab-eprescribing" class="tab-section hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Panel Kiri: Pencarian Pasien Aktif -->
+          <div class="lg:col-span-4 pastel-card p-5 space-y-4">
+            <div class="border-b border-pink-100 pb-3">
+              <h3 class="font-extrabold text-base"><i class="fa-solid fa-user-check text-pastelRose mr-2"></i>Pencarian Pasien Aktif</h3>
+              <p class="text-xs text-gray-500">Pilih pasien untuk membuat atau mengedit resep</p>
+            </div>
+            <input type="text" id="searchEPresPatient" oninput="renderEPresModule()" placeholder="Cari Nama Pasien / No. RM..." class="w-full px-3 py-2 rounded-xl border border-pink-200 text-xs">
+            <div id="epresPatientListContainer" class="space-y-2.5 max-h-96 overflow-y-auto pr-1"></div>
+          </div>
+
+          <!-- Panel Kanan: Detail Resep Elektronik -->
+          <div class="lg:col-span-8 pastel-card p-6 space-y-5">
+            <div class="flex flex-wrap justify-between items-center border-b border-pink-100 pb-3 gap-2">
+              <div>
+                <h2 class="text-lg font-extrabold text-pharmaDark">Detail Resep Elektronik - <span id="epres-patient-title" class="text-pink-600">Budi Santoso</span></h2>
+                <p class="text-xs text-gray-500">No. Rekam Medis: <span id="epres-patient-rm" class="font-bold text-teal-700">RM-123456</span></p>
+              </div>
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-pink-100 text-pink-800 border border-pink-200">
+                <i class="fa-solid fa-prescription mr-1"></i> Form Resep Dokter
+              </span>
+            </div>
+
+            <!-- Kotak Data Pasien (Usia, Diagnosis, Alergi) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gradient-to-r from-pink-50 to-amber-50/60 p-4 rounded-2xl border border-pink-200 text-xs">
+              <div>
+                <span class="text-gray-400 font-bold uppercase block">Data Pasien & Usia</span>
+                <p id="epres-patient-age" class="font-extrabold text-sm text-pharmaDark mt-1">Budi Santoso (39 Tahun)</p>
+              </div>
+              <div>
+                <span class="text-gray-400 font-bold uppercase block">Diagnosis Utama</span>
+                <input type="text" id="epres-input-diagnosis" value="Hipertensi Ringan" class="w-full mt-1 px-2.5 py-1 rounded-lg bg-white border border-pink-200 font-bold text-pharmaDark">
+              </div>
+              <div>
+                <span class="text-gray-400 font-bold uppercase block">Riwayat Alergi</span>
+                <input type="text" id="epres-input-allergy" value="Tidak Ada" class="w-full mt-1 px-2.5 py-1 rounded-lg bg-white border border-pink-200 font-bold text-red-600">
+              </div>
+            </div>
+
+            <!-- Daftar Resep Dokter (R/) -->
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <h4 class="text-xs font-extrabold uppercase tracking-wider text-teal-800">
+                  <i class="fa-solid fa-pills mr-1"></i> Resep Dokter (R/)
+                </h4>
+                <button type="button" onclick="addEPresDrugRow()" class="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm">
+                  + Tambah Obat
+                </button>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-teal-50 text-teal-900 border-b border-teal-200 uppercase">
+                      <th class="py-2.5 px-3 w-12">No</th>
+                      <th class="py-2.5 px-3">Nama Obat (R/)</th>
+                      <th class="py-2.5 px-3">Signa / Aturan Pakai</th>
+                      <th class="py-2.5 px-3 w-20 text-center">Qty</th>
+                      <th class="py-2.5 px-2 w-12 text-center">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="epresTableBody" class="divide-y divide-pink-100"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Catatan Tambahan Dokter -->
+            <div>
+              <label class="text-xs font-bold text-gray-500">Catatan Tambahan Dokter</label>
+              <textarea id="epres-input-notes" rows="2" class="w-full mt-1 p-3 rounded-xl border border-pink-200 text-xs font-semibold">Kontrol tekanan darah minggu depan</textarea>
+            </div>
+
+            <!-- Tombol Simpan Resep Draft & Kirim Resep ke Apotek -->
+            <div class="flex flex-wrap justify-end gap-3 pt-3 border-t border-pink-100">
+              <button type="button" onclick="submitEPrescription('Draft')" class="px-5 py-2.5 rounded-xl border-2 border-pink-200 hover:bg-pink-50 font-bold text-xs transition">
+                <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Resep Draft
+              </button>
+              <button type="button" onclick="submitEPrescription('Menunggu Tebus POS')" class="px-6 py-2.5 rounded-xl bg-pastelRose hover:bg-pink-400 text-white font-extrabold text-xs shadow-md transition">
+                <i class="fa-solid fa-paper-plane mr-1"></i> Kirim Resep ke Apotek
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- 4. PEMERIKSAAN PENUNJANG & E-PRESCRIBING (HALAMAN 4 PDF)            -->
+      <!-- =================================================================== -->
+      <section id="tab-penunjang" class="tab-section hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Kiri: Daftar Pemeriksaan & Hasil -->
+          <div class="lg:col-span-7 pastel-card p-5 space-y-4 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="flex flex-wrap justify-between items-center border-b border-pink-100 pb-3 gap-2">
+                <div>
+                  <h3 class="font-extrabold text-base"><i class="fa-solid fa-microscope text-purple-600 mr-2"></i>Daftar Pemeriksaan & Hasil</h3>
+                  <p class="text-xs text-gray-500">Integrasi hasil Lab CBC, Radiologi X-Ray Thorax, & EKG</p>
+                </div>
+                <button onclick="openNewExamPrompt()" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm">
+                  + Buat Permintaan Baru
+                </button>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-purple-50 text-purple-900 border-b border-purple-200 uppercase">
+                      <th class="py-3 px-3">No.</th>
+                      <th class="py-3 px-3">Jenis Pemeriksaan</th>
+                      <th class="py-3 px-3">Status</th>
+                      <th class="py-3 px-3">Tanggal</th>
+                      <th class="py-3 px-3 text-center">Detail</th>
+                    </tr>
+                  </thead>
+                  <tbody id="examTableBody" class="divide-y divide-pink-100"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-purple-50/60 border border-purple-100 text-xs flex items-center justify-between">
+              <span><i class="fa-solid fa-circle-info text-purple-600 mr-1"></i> Klik tombol <b>Lihat Hasil / Gambar</b> untuk membuka lampiran pemeriksaan.</span>
+              <span class="font-bold text-purple-800">Pasien: Budi Santoso (RM 123456)</span>
+            </div>
+          </div>
+
+          <!-- Kanan: e-Prescribing & Resep Elektronik dari Stok (Sesuai Halaman 4 PDF) -->
+          <div class="lg:col-span-5 pastel-card p-5 space-y-4">
+            <div class="border-b border-pink-100 pb-3">
+              <h3 class="font-extrabold text-base"><i class="fa-solid fa-prescription-bottle-medical text-teal-600 mr-2"></i>e-Prescribing & Resep Elektronik</h3>
+              <p class="text-xs text-gray-500">Pasien: <span class="font-bold text-pink-600">Budi Santoso (RM 123456)</span></p>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <label class="font-bold text-gray-500">+ Buat Resep Baru (Pilih Obat dari Stok)</label>
+              <div class="flex gap-2">
+                <select id="penunjangDrugSelect" class="flex-1 px-3 py-2 rounded-xl border border-pink-200 font-bold bg-white"></select>
+                <button onclick="addPenunjangQuickPrescription()" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold">
+                  + Tambah
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-teal-50 text-teal-900 border-b border-teal-200 uppercase">
+                    <th class="py-2 px-2">Nama Obat</th>
+                    <th class="py-2 px-2">Dosis</th>
+                    <th class="py-2 px-2">Aturan Pakai</th>
+                    <th class="py-2 px-2">Catatan</th>
+                  </tr>
+                </thead>
+                <tbody id="penunjangPresTableBody" class="divide-y divide-pink-100"></tbody>
+              </table>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-pink-100 text-xs font-bold">
+              <button onclick="window.print()" class="py-2.5 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-sm">
+                Simpan & Cetak Resep
+              </button>
+              <button onclick="transferPenunjangPresToPOS()" class="py-2.5 px-3 rounded-xl bg-pastelRose hover:bg-pink-400 text-white shadow-sm">
+                Kirim ke Apotek POS
+              </button>
+              <button onclick="resetPenunjangPres()" class="py-2.5 px-3 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700">
+                Batalkan Resep
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- 5. POINT OF SALES (POS) APOTEK (HALAMAN 5 PDF)                      -->
+      <!-- =================================================================== -->
+      <section id="tab-pos" class="tab-section hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Kiri: Daftar Obat & Resep (Keranjang Belanja POS) -->
+          <div class="lg:col-span-7 pastel-card p-6 space-y-4">
+            <div class="flex flex-wrap justify-between items-center border-b border-pink-100 pb-3 gap-2">
+              <div>
+                <h2 class="text-lg font-extrabold text-pharmaDark"><i class="fa-solid fa-cash-register text-pastelRose mr-2"></i>TRANSAKSI PENJUALAN OBAT</h2>
+                <p class="text-xs text-gray-500">Daftar Obat & Resep Elektronik Terintegrasi Stok Gudang</p>
+              </div>
+              <button onclick="importEPrescriptionToPOS()" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-extrabold shadow-sm flex items-center gap-1.5">
+                <i class="fa-solid fa-prescription"></i> [Input e-Resep]
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr class="bg-pink-50 text-pink-900 border-b border-pink-200 text-xs uppercase">
+                    <th class="py-3 px-3">No</th>
+                    <th class="py-3 px-3">Daftar Obat & Resep</th>
+                    <th class="py-3 px-3 text-center">Qty</th>
+                    <th class="py-3 px-3 text-right">Harga Satuan</th>
+                    <th class="py-3 px-3 text-right">Total</th>
+                    <th class="py-3 px-2 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="posCartTableBody" class="divide-y divide-pink-100"></tbody>
+              </table>
+            </div>
+
+            <!-- Ringkasan Subtotal, Diskon Resep, Total -->
+            <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-50/80 to-pink-50/60 border border-amber-200 space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="font-bold text-gray-600">Subtotal</span>
+                <span id="pos-subtotal-display" class="font-extrabold">Rp 100.000</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-gray-600">Diskon Resep</span>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs font-bold text-teal-700">Rp</span>
+                  <input type="number" id="pos-discount-field" value="10000" oninput="recalculatePOS()" class="w-28 text-right px-2.5 py-1 rounded-lg border border-amber-300 bg-white font-extrabold text-teal-700">
+                </div>
+              </div>
+              <div class="flex justify-between pt-2 border-t border-amber-300 text-base">
+                <span class="font-extrabold text-pharmaDark">Total</span>
+                <span id="pos-net-display" class="font-extrabold text-xl text-pink-600">Rp 90.000</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kanan: Cari Obat / Scan Resep, Tombol Cepat, & Pembayaran -->
+          <div class="lg:col-span-5 pastel-card p-6 space-y-4">
+            <div>
+              <h3 class="font-extrabold text-base border-b border-pink-100 pb-2">Cari Nama Obat / Scan Resep</h3>
+              <div class="relative mt-2">
+                <i class="fa-solid fa-barcode absolute left-3 top-2.5 text-gray-400"></i>
+                <input type="text" id="posSearchInput" oninput="renderPOSQuickPills()" placeholder="Ketik nama obat atau scan SKU..." class="w-full pl-9 pr-3 py-2 rounded-xl border border-pink-200 text-xs">
+              </div>
+            </div>
+
+            <!-- Quick Pills Sesuai Halaman 5 PDF: [Panadol] [Amoxicillin] [Ibuprofen] [Vitamin D3] [Cough Syrup] [Antiseptic] -->
+            <div>
+              <span class="text-[11px] font-bold uppercase text-gray-400 block mb-2">Tombol Cepat Obat Populer:</span>
+              <div id="posQuickPillsContainer" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <div class="pt-3 border-t border-pink-100 space-y-3 text-sm">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-xs font-bold text-gray-500">Pelanggan / Pasien</label>
+                  <input type="text" id="pos-customer-name" value="Budi Santoso" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200 text-xs font-bold">
+                </div>
+                <div>
+                  <label class="text-xs font-bold text-gray-500">Nominal Bayar (Rp)</label>
+                  <input type="number" id="pos-paid-field" value="100000" oninput="recalculatePOS()" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200 text-xs font-extrabold text-teal-800">
+                </div>
+              </div>
+
+              <div class="flex justify-between items-center px-3 py-2 rounded-xl bg-teal-50 border border-teal-200 text-xs">
+                <span class="font-bold text-teal-800">Uang Kembalian:</span>
+                <span id="pos-change-display" class="font-extrabold text-sm text-teal-900">Rp 10.000</span>
+              </div>
+
+              <div>
+                <label class="text-xs font-bold uppercase text-gray-400">Metode Pembayaran:</label>
+                <div class="grid grid-cols-3 gap-2 mt-1.5 text-xs font-extrabold">
+                  <button type="button" onclick="setPOSPaymentMethod('Tunai')" id="btnpay-Tunai" class="pos-pay-btn py-2.5 rounded-xl border-2 border-pastelRose bg-pink-50 text-pink-900">
+                    <i class="fa-solid fa-money-bill-wave mr-1"></i> Tunai
+                  </button>
+                  <button type="button" onclick="setPOSPaymentMethod('Debit / Kredit')" id="btnpay-Debit / Kredit" class="pos-pay-btn py-2.5 rounded-xl border border-pink-200">
+                    <i class="fa-solid fa-credit-card mr-1"></i> Debit / Kredit
+                  </button>
+                  <button type="button" onclick="setPOSPaymentMethod('QRIS')" id="btnpay-QRIS" class="pos-pay-btn py-2.5 rounded-xl border border-pink-200">
+                    <i class="fa-solid fa-qrcode mr-1"></i> QRIS
+                  </button>
+                </div>
+              </div>
+
+              <button onclick="processPOSCheckout()" class="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-sm shadow-lg transition">
+                <i class="fa-solid fa-print mr-2"></i> PROSES PEMBAYARAN & CETAK STRUK
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- 6. DASHBOARD STOK & GUDANG FARMASI (HALAMAN 6 PDF)                  -->
+      <!-- =================================================================== -->
+      <section id="tab-stok" class="tab-section hidden space-y-6">
+        <div class="pastel-card p-6 space-y-4">
+          <div class="flex flex-wrap justify-between items-center border-b border-pink-100 pb-4 gap-3">
+            <div>
+              <h2 class="text-xl font-extrabold text-pharmaDark"><i class="fa-solid fa-boxes-stacked text-pastelRose mr-2"></i>Dashboard Stok & Gudang Farmasi</h2>
+              <p class="text-xs text-gray-500">Manajemen inventaris obat, lokasi rak penyimpanan, status ketersediaan, & tanggal kedaluwarsa</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="openMedicineModal()" class="px-4 py-2 rounded-xl bg-pastelRose hover:bg-pink-400 text-white text-xs font-bold shadow-sm">
+                <i class="fa-solid fa-plus mr-1"></i> Tambah Stok Baru
+              </button>
+              <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm">
+                <i class="fa-solid fa-file-lines mr-1"></i> Generate Laporan Stok
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Bar Sesuai Halaman 6 PDF -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400"></i>
+              <input type="text" id="stockSearchInput" oninput="renderStockModule()" placeholder="Cari Obat / SKU (AMX001, PCT005...)" class="w-full pl-8 pr-3 py-2 rounded-xl border border-pink-200">
+            </div>
+            <select id="stockCategoryFilter" onchange="renderStockModule()" class="px-3 py-2 rounded-xl border border-pink-200 font-bold bg-white">
+              <option value="Semua">Kategori Obat: Semua</option>
+              <option value="Antibiotik">Antibiotik</option>
+              <option value="Analgesik & Antipiretik">Analgesik & Antipiretik</option>
+              <option value="Antiinflamasi">Antiinflamasi</option>
+              <option value="Antihipertensi">Antihipertensi</option>
+              <option value="Vitamin & Suplemen">Vitamin & Suplemen</option>
+              <option value="Topikal / Dermatologi">Topikal / Dermatologi</option>
+            </select>
+            <select id="stockWarehouseFilter" onchange="renderStockModule()" class="px-3 py-2 rounded-xl border border-pink-200 font-bold bg-white">
+              <option value="Semua">Lokasi Gudang: Gudang Utama (Semua Status)</option>
+              <option value="Aman">Status: Aman</option>
+              <option value="Menipis">Status: Menipis</option>
+              <option value="Kritis">Status: Kritis</option>
+              <option value="Kosong">Status: Kosong</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-pink-50 text-pink-900 border-b border-pink-200 text-xs uppercase">
+                  <th class="py-3 px-3">Nama Obat</th>
+                  <th class="py-3 px-3">SKU</th>
+                  <th class="py-3 px-3 text-right">Stok Saat Ini</th>
+                  <th class="py-3 px-3">Satuan</th>
+                  <th class="py-3 px-3">Lokasi Rak</th>
+                  <th class="py-3 px-3 text-center">Status Stok</th>
+                  <th class="py-3 px-3">Tanggal Kedaluwarsa</th>
+                  <th class="py-3 px-3 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="stockTableBody" class="divide-y divide-pink-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- 7. MANAJEMEN USER & HAK AKSES (HALAMAN 7 PDF)                       -->
+      <!-- =================================================================== -->
+      <section id="tab-users" class="tab-section hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-8 pastel-card p-6 space-y-4">
+            <div class="flex flex-wrap justify-between items-center border-b border-pink-100 pb-3 gap-2">
+              <div>
+                <h2 class="text-xl font-extrabold text-pharmaDark"><i class="fa-solid fa-user-shield text-indigo-600 mr-2"></i>Manajemen User</h2>
+                <p class="text-xs text-gray-500">Kelola akun dokter, apoteker, kasir, dan petugas gudang farmasi</p>
+              </div>
+              <div class="flex gap-2">
+                <input type="text" id="userSearchInput" oninput="renderUsersModule()" placeholder="Cari User..." class="px-3 py-1.5 rounded-xl border border-pink-200 text-xs">
+                <button onclick="openNewUserPrompt()" class="px-3.5 py-1.5 rounded-xl bg-pastelRose hover:bg-pink-400 text-white text-xs font-bold shadow-sm">
+                  + Tambah User Baru
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr class="bg-pink-50 text-pink-900 border-b border-pink-200 text-xs uppercase">
+                    <th class="py-3 px-3">Nama Lengkap</th>
+                    <th class="py-3 px-3">Role / Jabatan</th>
+                    <th class="py-3 px-3">Akses Modul</th>
+                    <th class="py-3 px-3 text-center">Status</th>
+                    <th class="py-3 px-3 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody" class="divide-y divide-pink-100"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Ringkasan Role Sesuai Halaman 7 PDF -->
+          <div class="lg:col-span-4 pastel-card p-6 space-y-4">
+            <h3 class="font-extrabold text-base border-b border-pink-100 pb-3">
+              <i class="fa-solid fa-chart-pie text-pastelRose mr-2"></i>Ringkasan Role
+            </h3>
+            <div id="roleSummaryContainer" class="space-y-2.5 text-xs"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- AREA CETAK STRUK POS / TIKET ANTREAN (TAMPIL SAAT PRINT)              -->
+  <!-- ===================================================================== -->
+  <div id="printReceiptArea" class="hidden print-area max-w-md mx-auto p-6 text-xs font-mono">
+    <div class="text-center border-b border-dashed border-gray-400 pb-3 mb-3">
+      <h2 class="text-base font-bold">AANG'S PHARMA</h2>
+      <p>Apotek Terpercaya & Farmasi Klinik</p>
+      <p id="print-date-txt"></p>
+    </div>
+    <div id="print-body-content" class="space-y-2"></div>
+    <div class="text-center border-t border-dashed border-gray-400 pt-3 mt-4">
+      <p>Semoga Lekas Sembuh!</p>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL TAMBAH PASIEN BARU                                              -->
+  <!-- ===================================================================== -->
+  <div id="patientModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4 no-print">
+    <div class="pastel-card max-w-md w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-pink-100 pb-3">
+        <h3 class="font-extrabold text-base"><i class="fa-solid fa-user-plus text-pastelRose mr-2"></i>Tambah Pasien & Ambil Antrean</h3>
+        <button onclick="closePatientModal()" class="text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleAddPatientSubmit(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="font-bold">Nama Lengkap Pasien</label>
+          <input type="text" id="new-pat-name" required placeholder="Contoh: Rina Kartika" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold">Usia (Tahun)</label>
+            <input type="number" id="new-pat-age" required value="30" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200">
+          </div>
+          <div>
+            <label class="font-bold">No. Telepon / WA</label>
+            <input type="text" id="new-pat-phone" required placeholder="0812..." class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold">Diagnosis / Keluhan</label>
+            <input type="text" id="new-pat-diag" required value="Konsultasi & Tebus Resep" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200">
+          </div>
+          <div>
+            <label class="font-bold">Riwayat Alergi Obat</label>
+            <input type="text" id="new-pat-allergy" required value="Tidak Ada" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200">
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-pink-100">
+          <button type="button" onclick="closePatientModal()" class="px-4 py-2 rounded-xl border font-bold">Batal</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-pastelRose text-white font-bold shadow">Simpan & Masuk Antrean</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL TAMBAH / EDIT STOK OBAT GUDANG                                  -->
+  <!-- ===================================================================== -->
+  <div id="medicineModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4 no-print">
+    <div class="pastel-card max-w-md w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-pink-100 pb-3">
+        <h3 class="font-extrabold text-base"><i class="fa-solid fa-capsules text-pastelRose mr-2"></i>Form Stok Obat Gudang Farmasi</h3>
+        <button onclick="closeMedicineModal()" class="text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveMedicineSubmit(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold">Kode SKU</label>
+            <input type="text" id="med-sku" required placeholder="AMX001" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200 font-bold">
+          </div>
+          <div>
+            <label class="font-bold">Kategori Obat</label>
+            <select id="med-category" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200 font-bold bg-white">
+              <option value="Antibiotik">Antibiotik</option>
+              <option value="Analgesik & Antipiretik">Analgesik & Antipiretik</option>
+              <option value="Antiinflamasi">Antiinflamasi</option>
+              <option value="Antihipertensi">Antihipertensi</option>
+              <option value="Vitamin & Suplemen">Vitamin & Suplemen</option>
+              <option value="Topikal / Dermatologi">Topikal / Dermatologi</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="font-bold">Nama Obat</label>
+          <input type="text" id="med-name" required placeholder="Contoh: Amoxicillin 500mg" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200">
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="font-bold">Stok Saat Ini</label>
+            <input type="number" id="med-stock" required value="100" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200">
+          </div>
+          <div>
+            <label class="font-bold">Satuan</label>
+            <input type="text" id="med-unit" required value="Tablet" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200">
+          </div>
+          <div>
+            <label class="font-bold">Harga Jual (Rp)</label>
+            <input type="number" id="med-price" required value="25000" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold">Lokasi Rak</label>
+            <input type="text" id="med-rack" required value="A1-02-03" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200">
+          </div>
+          <div>
+            <label class="font-bold">Tanggal Kedaluwarsa</label>
+            <input type="date" id="med-exp" required value="2027-12-31" class="w-full mt-1 px-3 py-2 rounded-xl border border-pink-200">
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-pink-100">
+          <button type="button" onclick="closeMedicineModal()" class="px-4 py-2 rounded-xl border font-bold">Batal</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-pastelRose text-white font-bold shadow">Simpan Stok Obat</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL KONFIGURASI API GOOGLE APPS SCRIPT                              -->
+  <!-- ===================================================================== -->
+  <div id="configModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4 no-print">
+    <div class="pastel-card max-w-lg w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-pink-100 pb-3">
+        <h3 class="font-extrabold text-lg"><i class="fa-solid fa-link text-pastelRose mr-2"></i>Konfigurasi Integrasi Database Apotek</h3>
+        <button onclick="closeConfigModal()" class="text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <label class="font-bold block">URL Web App Google Apps Script (Database Aang's Pharma)</label>
+        <input type="url" id="inputPharmaGasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2.5 rounded-xl border border-pink-200 font-semibold">
+        <p class="text-gray-500">Tempelkan URL hasil Deploy Web App dari file Google Sheets <b>aang's pharma</b> Anda untuk menyinkronkan ke-7 tab sheet secara otomatis.</p>
+      </div>
+      <div class="flex justify-end gap-2 pt-3 border-t border-pink-100">
+        <button onclick="closeConfigModal()" class="px-4 py-2 rounded-xl border border-gray-300 text-xs font-bold">Batal</button>
+        <button onclick="saveApiConfig()" class="px-5 py-2 rounded-xl bg-pastelRose text-white text-xs font-bold shadow">Simpan & Sinkronkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT UTAMA AANG'S PHARMA                                        -->
+  <!-- ===================================================================== -->
+  <script>
+    let PHARMA_GAS_URL = localStorage.getItem('AANG_PHARMA_GAS_URL') || '';
+    let selectedPOSPayment = 'Tunai';
+
+    let appState = {
+      patientsQueue: [
+        { queue_id: "Q-001", queue_number: "A015", patient_id: "RM-123456", full_name: "Budi Santoso", age: 39, phone: "0812-3456-7890", diagnosis: "Hipertensi Ringan", allergy: "Tidak Ada", queue_status: "Sedang Dilayani" },
+        { queue_id: "Q-002", queue_number: "A016", patient_id: "RM-01234567", full_name: "Siti Aminah", age: 65, phone: "0812-9876-5432", diagnosis: "Pneumonia (J18.9)", allergy: "Debu & Dingin", queue_status: "Menunggu" },
+        { queue_id: "Q-003", queue_number: "A017", patient_id: "RM-124123", full_name: "Agus Setiawan", age: 32, phone: "0813-4567-8901", diagnosis: "ISPA & Demam", allergy: "Tidak Ada", queue_status: "Menunggu" },
+        { queue_id: "Q-004", queue_number: "A018", patient_id: "RM-123458", full_name: "Maria Dewi", age: 28, phone: "0812-1122-3344", diagnosis: "Dispepsia Akut", allergy: "Seafood", queue_status: "Terdaftar" },
+        { queue_id: "Q-005", queue_number: "A019", patient_id: "RM-123457", full_name: "Joko Widodo", age: 50, phone: "0813-5566-7788", diagnosis: "Cek Kolesterol", allergy: "Tidak Ada", queue_status: "Terdaftar" }
+      ],
+      medicineStock: [
+        { sku: "AMX001", drug_name: "Amoxicillin 500mg", category: "Antibiotik", current_stock: 1250, unit: "Tablet", price: 30000, rack_location: "A1-02-03", warehouse_location: "Gudang Utama", stock_status: "Aman", expiry_date: "2024-12-31" },
+        { sku: "PCT005", drug_name: "Paracetamol 100mg Syr", category: "Analgesik & Antipiretik", current_stock: 75, unit: "Botol", price: 25000, rack_location: "B2-01-01", warehouse_location: "Gudang Utama", stock_status: "Menipis", expiry_date: "2025-06-30" },
+        { sku: "IBP012", drug_name: "Ibuprofen 400mg", category: "Antiinflamasi", current_stock: 500, unit: "Tablet", price: 20000, rack_location: "A1-02-04", warehouse_location: "Gudang Utama", stock_status: "Aman", expiry_date: "2024-09-15" },
+        { sku: "VTC999", drug_name: "Vitamin C 1000mg", category: "Vitamin & Suplemen", current_stock: 15, unit: "Strip", price: 15000, rack_location: "C3-03-02", warehouse_location: "Gudang Utama", stock_status: "Kritis", expiry_date: "2023-11-30" },
+        { sku: "SLP002", drug_name: "Salep Kulit 10g", category: "Topikal / Dermatologi", current_stock: 2, unit: "Tube", price: 18000, rack_location: "D4-04-01", warehouse_location: "Gudang Utama", stock_status: "Kosong", expiry_date: "2024-03-20" },
+        { sku: "AML005", drug_name: "Amlodipine 5mg Tablet", category: "Antihipertensi", current_stock: 640, unit: "Tablet", price: 25000, rack_location: "A2-01-02", warehouse_location: "Gudang Utama", stock_status: "Aman", expiry_date: "2027-01-15" },
+        { sku: "PND001", drug_name: "Panadol", category: "Analgesik & Antipiretik", current_stock: 320, unit: "Strip", price: 16000, rack_location: "B1-01-04", warehouse_location: "Gudang Utama", stock_status: "Aman", expiry_date: "2027-11-20" },
+        { sku: "VTD003", drug_name: "Vitamin D3", category: "Vitamin & Suplemen", current_stock: 210, unit: "Strip", price: 22000, rack_location: "C3-03-05", warehouse_location: "Gudang Utama", stock_status: "Aman", expiry_date: "2027-08-10" },
+        { sku: "CSY001", drug_name: "Cough Syrup", category: "Analgesik & Antipiretik", current_stock: 95, unit: "Botol", price: 28000, rack_location: "B2-02-01", warehouse_location: "Gudang Utama", stock_status: "Menipis", expiry_date: "2027-05-12" },
+        { sku: "ANT001", drug_name: "Antiseptic", category: "Topikal / Dermatologi", current_stock: 150, unit: "Botol", price: 20000, rack_location: "D1-01-02", warehouse_location: "Gudang Utama", stock_status: "Aman", expiry_date: "2027-09-01" }
+      ],
+      supportingExams: [
+        { exam_id: "EXM-001", patient_id: "RM-123456", patient_name: "Budi Santoso", exam_type: "Darah Lengkap (CBC)", exam_status: "Selesai", exam_date: "10/10/2023", result_summary: "Hb: 14.2 g/dL, Leukosit: 7.400 /uL, Trombosit: 245.000 /uL (Normal)", attachment_type: "PDF" },
+        { exam_id: "EXM-002", patient_id: "RM-01234567", patient_name: "Siti Aminah", exam_type: "X-Ray Thorax", exam_status: "Selesai", exam_date: "10/10/2023", result_summary: "Tampak infiltrat halus di paracardial kanan, cor normal", attachment_type: "X-RAY" },
+        { exam_id: "EXM-003", patient_id: "RM-124123", patient_name: "Agus Setiawan", exam_type: "EKG", exam_status: "Menunggu Hasil", exam_date: "11/10/2023", result_summary: "Sedang dievaluasi dokter spesialis jantung", attachment_type: "NONE" },
+        { exam_id: "EXM-004", patient_id: "RM-123456", patient_name: "Budi Santoso", exam_type: "Manajemen Pasien", exam_status: "Terhubung", exam_date: "11/10/2023", result_summary: "Profil Rekam Medis Pasien Budi Santoso Terhubung", attachment_type: "PROFILE" }
+      ],
+      users: [
+        { user_id: "USR-01", full_name: "Dr. Aang", role: "Administrator", module_access: "Semua", user_status: "Aktif" },
+        { user_id: "USR-02", full_name: "Siti Rahma", role: "Apoteker", module_access: "POS, Stok", user_status: "Aktif" },
+        { user_id: "USR-03", full_name: "Budi Santoso", role: "Dokter", module_access: "Prescribing, Pasien", user_status: "Aktif" },
+        { user_id: "USR-04", full_name: "Dewi Puspita", role: "Kasir", module_access: "POS, Billing", user_status: "Aktif" },
+        { user_id: "USR-05", full_name: "Agus Salim", role: "Gudang", module_access: "Stok, Laporan", user_status: "Tidak Aktif" }
+      ],
+      epresItems: [
+        { drug_name: "Amlodipine 5mg Tablet", signa: "S.1.dd.1 p.c. (1x sehari)", qty: 30, price: 25000 },
+        { drug_name: "Paracetamol 500mg Tablet", signa: "S.3.dd.1 p.r.n. (bila perlu)", qty: 20, price: 12000 }
+      ],
+      penunjangPresItems: [
+        { drug_name: "Amoxicillin 500mg", dose: "1 kapsul", signa: "3x sehari", notes: "Setelah makan", qty: 2, price: 30000 },
+        { drug_name: "Paracetamol 500mg", dose: "1 tablet", signa: "Jika perlu", notes: "Untuk demam", qty: 1, price: 15000 }
+      ],
+      posCart: [
+        { sku: "AMX001", drug_name: "Amoxicillin 500mg (2 strip)", qty: 2, price: 30000 },
+        { sku: "PCT005", drug_name: "Paracetamol Syrup (1 btl)", qty: 1, price: 25000 },
+        { sku: "VTC999", drug_name: "Vitamin C (10 tablet)", qty: 1, price: 15000 }
+      ]
+    };
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById('tab-' + tabId);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('btn-' + tabId);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    function renderAll() {
+      document.getElementById('stat-queue-count').innerText = appState.patientsQueue.length + " Pasien";
+      document.getElementById('stat-stock-count').innerText = appState.medicineStock.length + " SKU";
+      const activeUsers = appState.users.filter(u => u.user_status === 'Aktif').length;
+      document.getElementById('stat-user-count').innerText = activeUsers + " User";
+
+      renderQueueModule();
+      renderEPresModule();
+      renderPenunjangModule();
+      renderPOSModule();
+      renderStockModule();
+      renderUsersModule();
+    }
+
+    // =======================================================================
+    // 1. LOGIKA MANAJEMEN PASIEN & ANTREAN (HALAMAN 2 PDF)
+    // =======================================================================
+    function renderQueueModule() {
+      const activeBox = document.getElementById('queueActiveContainer');
+      const topThree = appState.patientsQueue.slice(0, 3);
+      activeBox.innerHTML = topThree.map(q => {
+        const isServing = q.queue_status === 'Sedang Dilayani';
+        return `
+          <div class="p-4 rounded-2xl border-2 ${isServing ? 'border-teal-400 bg-teal-50/70 shadow-sm' : 'border-pink-100 bg-white'} flex justify-between items-center">
+            <div>
+              <p class="font-bold text-sm text-pharmaDark">${q.full_name}</p>
+              <p class="text-3xl font-extrabold ${isServing ? 'text-teal-800' : 'text-pink-600'} my-0.5">${q.queue_number}</p>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${isServing ? 'bg-teal-200 text-teal-900' : 'bg-amber-100 text-amber-800'}">
+                Status: ${q.queue_status}
+              </span>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <button onclick="openPatientInEPres('${q.patient_id}')" class="px-3 py-1.5 rounded-xl bg-pastelPink hover:bg-pink-300 text-pharmaDark font-bold text-xs">
+                <i class="fa-solid fa-prescription mr-1"></i> Input R/
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const q = (document.getElementById('searchPatientQueueInput')?.value || '').toLowerCase();
+      const filtered = appState.patientsQueue.filter(p =>
+        p.full_name.toLowerCase().includes(q) || p.patient_id.toLowerCase().includes(q)
+      );
+
+      const grid = document.getElementById('registeredPatientsGrid');
+      grid.innerHTML = filtered.map(p => `
+        <div onclick="openPatientInEPres('${p.patient_id}')" class="p-3.5 rounded-2xl border border-pink-200 bg-pink-50/40 hover:bg-pink-100/50 cursor-pointer transition flex justify-between items-center text-xs">
+          <div>
+            <p class="font-extrabold text-sm text-pharmaDark">${p.full_name}</p>
+            <p class="text-gray-600 font-semibold">RM: ${p.patient_id.replace('RM-', '')}</p>
+            <p class="text-gray-500">Telepon: ${p.phone}</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-xl bg-white border border-pink-200 font-extrabold text-pink-600">${p.queue_number}</span>
+        </div>
+      `).join('');
+    }
+
+    async function callNextQueuePatient() {
+      let nextFound = null;
+      appState.patientsQueue.forEach(p => {
+        if (p.queue_status === 'Sedang Dilayani') p.queue_status = 'Selesai';
+      });
+      for (let i = 0; i < appState.patientsQueue.length; i++) {
+        if (appState.patientsQueue[i].queue_status === 'Menunggu' || appState.patientsQueue[i].queue_status === 'Terdaftar') {
+          appState.patientsQueue[i].queue_status = 'Sedang Dilayani';
+          nextFound = appState.patientsQueue[i];
+          break;
+        }
+      }
+      renderQueueModule();
+      if (nextFound) {
+        alert(`Memanggil Antrean ${nextFound.queue_number} - ${nextFound.full_name}`);
+      } else {
+        alert("Seluruh antrean yang menunggu telah selesai dilayani!");
+      }
+      await sendPostRequest({ action: "callNextQueue" });
+    }
+
+    function openVisitHistoryModal() {
+      const summary = appState.patientsQueue.map(p =>
+        `${p.queue_number} | ${p.full_name} (${p.patient_id}) - ${p.diagnosis} [${p.queue_status}]`
+      ).join('\n');
+      alert("RIWAYAT KUNJUNGAN PASIEN HARI INI:\n\n" + summary);
+    }
+
+    function printQueueTicketAction() {
+      const current = appState.patientsQueue.find(p => p.queue_status === 'Sedang Dilayani') || appState.patientsQueue[0];
+      document.getElementById('print-date-txt').innerText = new Date().toLocaleString('id-ID');
+      document.getElementById('print-body-content').innerHTML = `
+        <div class="text-center py-4">
+          <p class="text-xs uppercase font-bold">Nomor Antrean Apotek</p>
+          <p class="text-4xl font-extrabold my-2">${current.queue_number}</p>
+          <p class="font-bold">${current.full_name} (${current.patient_id})</p>
+          <p class="text-[11px] text-gray-500 mt-1">Status: ${current.queue_status}</p>
+        </div>
+      `;
+      window.print();
+    }
+
+    function openPatientModal() {
+      document.getElementById('patientModal').classList.remove('hidden');
+      document.getElementById('patientModal').classList.add('flex');
+    }
+
+    function closePatientModal() {
+      document.getElementById('patientModal').classList.add('hidden');
+      document.getElementById('patientModal').classList.remove('flex');
+    }
+
+    async function handleAddPatientSubmit(e) {
+      e.preventDefault();
+      const idx = appState.patientsQueue.length + 1;
+      const newPatient = {
+        queue_id: "Q-00" + idx,
+        queue_number: "A0" + (14 + idx),
+        patient_id: "RM-" + (123455 + idx),
+        full_name: document.getElementById('new-pat-name').value.trim(),
+        age: Number(document.getElementById('new-pat-age').value) || 30,
+        phone: document.getElementById('new-pat-phone').value.trim(),
+        diagnosis: document.getElementById('new-pat-diag').value.trim(),
+        allergy: document.getElementById('new-pat-allergy').value.trim(),
+        queue_status: "Menunggu"
+      };
+      appState.patientsQueue.push(newPatient);
+      closePatientModal();
+      e.target.reset();
+      renderAll();
+      await sendPostRequest({ action: "addPatientQueue", ...newPatient });
+    }
+
+    // =======================================================================
+    // 2. LOGIKA E-PRESCRIBING / RESEP ELEKTRONIK (HALAMAN 3 PDF)
+    // =======================================================================
+    function renderEPresModule() {
+      const q = (document.getElementById('searchEPresPatient')?.value || '').toLowerCase();
+      const list = appState.patientsQueue.filter(p =>
+        p.full_name.toLowerCase().includes(q) || p.patient_id.toLowerCase().includes(q)
+      );
+
+      const container = document.getElementById('epresPatientListContainer');
+      container.innerHTML = list.map(p => `
+        <div onclick="openPatientInEPres('${p.patient_id}')" class="p-3 rounded-xl border border-pink-100 hover:border-pastelRose bg-pink-50/40 cursor-pointer transition text-xs">
+          <div class="flex justify-between items-center">
+            <span class="font-extrabold text-sm text-pharmaDark">${p.full_name}</span>
+            <span class="px-2 py-0.5 rounded bg-white border border-pink-200 font-bold text-pink-600">${p.queue_number}</span>
+          </div>
+          <p class="text-gray-500 mt-0.5">${p.patient_id} • ${p.diagnosis}</p>
+        </div>
+      `).join('');
+
+      const tbody = document.getElementById('epresTableBody');
+      tbody.innerHTML = appState.epresItems.map((item, idx) => `
+        <tr>
+          <td class="py-2.5 px-3 font-extrabold text-teal-800">${idx + 1}. R/</td>
+          <td class="py-2.5 px-3">
+            <input type="text" value="${item.drug_name}" onchange="appState.epresItems[${idx}].drug_name=this.value" class="w-full px-2.5 py-1.5 rounded-lg border border-teal-200 font-bold bg-white">
+          </td>
+          <td class="py-2.5 px-3">
+            <input type="text" value="${item.signa}" onchange="appState.epresItems[${idx}].signa=this.value" class="w-full px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white">
+          </td>
+          <td class="py-2.5 px-3 text-center">
+            <input type="number" value="${item.qty}" onchange="appState.epresItems[${idx}].qty=Number(this.value)" class="w-16 text-center px-2 py-1.5 rounded-lg border border-teal-200 font-extrabold bg-white">
+          </td>
+          <td class="py-2.5 px-2 text-center">
+            <button type="button" onclick="appState.epresItems.splice(${idx},1); renderEPresModule();" class="text-red-500 hover:text-red-700">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openPatientInEPres(patientId) {
+      const p = appState.patientsQueue.find(x => x.patient_id === patientId);
+      if (!p) return;
+      document.getElementById('epres-patient-title').innerText = p.full_name;
+      document.getElementById('epres-patient-rm').innerText = p.patient_id;
+      document.getElementById('epres-patient-age').innerText = `${p.full_name} (${p.age || 35} Tahun)`;
+      document.getElementById('epres-input-diagnosis').value = p.diagnosis || 'Hipertensi Ringan';
+      document.getElementById('epres-input-allergy').value = p.allergy || 'Tidak Ada';
+      switchTab('eprescribing');
+    }
+
+    function addEPresDrugRow() {
+      appState.epresItems.push({
+        drug_name: "Amoxicillin 500mg Tablet",
+        signa: "S.3.dd.1 p.c. (3x sehari)",
+        qty: 15,
+        price: 30000
+      });
+      renderEPresModule();
+    }
+
+    async function submitEPrescription(statusMode) {
+      const patName = document.getElementById('epres-patient-title').innerText;
+      const patRm = document.getElementById('epres-patient-rm').innerText;
+      const diag = document.getElementById('epres-input-diagnosis').value;
+      const allergy = document.getElementById('epres-input-allergy').value;
+      const notes = document.getElementById('epres-input-notes').value;
+
+      if (statusMode === 'Menunggu Tebus POS') {
+        appState.posCart = appState.epresItems.map(item => ({
+          sku: "E-RESEP",
+          drug_name: `${item.drug_name} (${item.signa})`,
+          qty: Number(item.qty) || 1,
+          price: Number(item.price) || 15000
+        }));
+        document.getElementById('pos-customer-name').value = patName;
+        renderPOSModule();
+        alert(`Resep Elektronik untuk ${patName} (${patRm}) berhasil dikirim ke Point of Sales (POS) Apotek!`);
+        switchTab('pos');
+      } else {
+        alert(`Draft Resep Elektronik ${patName} berhasil disimpan!`);
+      }
+
+      await sendPostRequest({
+        action: "saveEPrescription",
+        patient_id: patRm,
+        patient_name: patName,
+        diagnosis: diag,
+        allergy: allergy,
+        doctor_notes: notes,
+        prescription_status: statusMode,
+        items: appState.epresItems
+      });
+    }
+
+    // =======================================================================
+    // 3. LOGIKA PEMERIKSAAN PENUNJANG & RESEP CEPAT (HALAMAN 4 PDF)
+    // =======================================================================
+    function renderPenunjangModule() {
+      const tbody = document.getElementById('examTableBody');
+      tbody.innerHTML = appState.supportingExams.map((ex, idx) => {
+        let badge = 'bg-emerald-100 text-emerald-800';
+        if (ex.exam_status === 'Menunggu Hasil') badge = 'bg-amber-100 text-amber-800';
+        else if (ex.exam_status === 'Terhubung') badge = 'bg-blue-100 text-blue-800';
+
+        let actionBtn = '';
+        if (ex.attachment_type === 'PDF') {
+          actionBtn = `<button onclick="showExamDetailAlert(${idx})" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold"><i class="fa-solid fa-file-pdf mr-1"></i>Lihat Hasil</button>`;
+        } else if (ex.attachment_type === 'X-RAY') {
+          actionBtn = `<button onclick="showExamDetailAlert(${idx})" class="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold"><i class="fa-solid fa-x-ray mr-1"></i>Lihat Gambar</button>`;
+        } else if (ex.attachment_type === 'PROFILE') {
+          actionBtn = `<button onclick="switchTab('antrean')" class="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold"><i class="fa-solid fa-user mr-1"></i>Lihat Profil</button>`;
+        } else {
+          actionBtn = `<span class="text-gray-400 italic">Proses</span>`;
+        }
+
+        return `
+          <tr>
+            <td class="py-3 px-3 font-bold">${idx + 1}</td>
+            <td class="py-3 px-3 font-extrabold text-pharmaDark">${ex.exam_type}</td>
+            <td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${badge}">${ex.exam_status}</span></td>
+            <td class="py-3 px-3 text-gray-500">${ex.exam_date}</td>
+            <td class="py-3 px-3 text-center">${actionBtn}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const sel = document.getElementById('penunjangDrugSelect');
+      if (sel) {
+        sel.innerHTML = appState.medicineStock.map(m =>
+          `<option value="${m.drug_name}" data-price="${m.price}">${m.drug_name} (Stok: ${m.current_stock} ${m.unit})</option>`
+        ).join('');
+      }
+
+      const presBody = document.getElementById('penunjangPresTableBody');
+      presBody.innerHTML = appState.penunjangPresItems.map(item => `
+        <tr>
+          <td class="py-2.5 px-2 font-extrabold text-pharmaDark">${item.drug_name}</td>
+          <td class="py-2.5 px-2">${item.dose}</td>
+          <td class="py-2.5 px-2 font-semibold text-teal-800">${item.signa}</td>
+          <td class="py-2.5 px-2 text-gray-500">${item.notes}</td>
+        </tr>
+      `).join('');
+    }
+
+    function showExamDetailAlert(index) {
+      const ex = appState.supportingExams[index];
+      if (!ex) return;
+      alert(`DETAIL PEMERIKSAAN PENUNJANG\n\nJenis: ${ex.exam_type}\nPasien: ${ex.patient_name} (${ex.patient_id})\nTanggal: ${ex.exam_date}\nStatus: ${ex.exam_status}\n\nRingkasan Hasil:\n${ex.result_summary}`);
+    }
+
+    async function openNewExamPrompt() {
+      const examType = prompt("Masukkan Jenis Pemeriksaan Baru (Darah Lengkap / X-Ray Thorax / EKG / Urinalisis):", "Darah Lengkap (CBC)");
+      if (!examType) return;
+      const newExam = {
+        exam_id: "EXM-00" + (appState.supportingExams.length + 1),
+        patient_id: "RM-123456",
+        patient_name: "Budi Santoso",
+        exam_type: examType,
+        exam_status: "Menunggu Hasil",
+        exam_date: new Date().toLocaleDateString('id-ID'),
+        result_summary: "Sampel sedang diperiksa di laboratorium",
+        attachment_type: "PDF"
+      };
+      appState.supportingExams.push(newExam);
+      renderPenunjangModule();
+      await sendPostRequest({ action: "saveSupportingExam", ...newExam });
+    }
+
+    function addPenunjangQuickPrescription() {
+      const sel = document.getElementById('penunjangDrugSelect');
+      const drugName = sel.value;
+      appState.penunjangPresItems.push({
+        drug_name: drugName,
+        dose: "1 tablet",
+        signa: "3x sehari",
+        notes: "Setelah makan",
+        qty: 1,
+        price: 25000
+      });
+      renderPenunjangModule();
+    }
+
+    function transferPenunjangPresToPOS() {
+      appState.posCart = appState.penunjangPresItems.map(item => ({
+        sku: "RES-PNJ",
+        drug_name: `${item.drug_name} (${item.dose} - ${item.signa})`,
+        qty: item.qty || 1,
+        price: item.price || 25000
+      }));
+      renderPOSModule();
+      alert("Resep berhasil dikirim ke kasir Point of Sales (POS) Apotek!");
+      switchTab('pos');
+    }
+
+    function resetPenunjangPres() {
+      if (confirm("Batalkan & kosongkan daftar resep ini?")) {
+        appState.penunjangPresItems = [];
+        renderPenunjangModule();
+      }
+    }
+
+    // =======================================================================
+    // 4. LOGIKA POINT OF SALES (POS) APOTEK (HALAMAN 5 PDF)
+    // =======================================================================
+    function renderPOSModule() {
+      const tbody = document.getElementById('posCartTableBody');
+      tbody.innerHTML = appState.posCart.map((item, idx) => {
+        const lineTotal = (Number(item.qty) || 1) * (Number(item.price) || 0);
+        return `
+          <tr>
+            <td class="py-3 px-3 font-bold">${idx + 1}</td>
+            <td class="py-3 px-3 font-extrabold text-pharmaDark">${item.drug_name}</td>
+            <td class="py-3 px-3 text-center">
+              <input type="number" min="1" value="${item.qty}" onchange="appState.posCart[${idx}].qty=Number(this.value); renderPOSModule();" class="w-16 text-center px-2 py-1 rounded-lg border border-pink-200 font-bold">
+            </td>
+            <td class="py-3 px-3 text-right">Rp ${Number(item.price).toLocaleString('id-ID')}</td>
+            <td class="py-3 px-3 text-right font-extrabold text-pink-600">Rp ${lineTotal.toLocaleString('id-ID')}</td>
+            <td class="py-3 px-2 text-center">
+              <button onclick="appState.posCart.splice(${idx},1); renderPOSModule();" class="text-red-500 hover:text-red-700">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      recalculatePOS();
+      renderPOSQuickPills();
+    }
+
+    function renderPOSQuickPills() {
+      const q = (document.getElementById('posSearchInput')?.value || '').toLowerCase();
+      const filtered = appState.medicineStock.filter(m =>
+        m.drug_name.toLowerCase().includes(q) || m.sku.toLowerCase().includes(q)
+      );
+      const container = document.getElementById('posQuickPillsContainer');
+      container.innerHTML = filtered.map(m => `
+        <button type="button" onclick="addDrugToPOSCart('${m.sku}')" class="quick-pill px-3 py-1.5 rounded-xl border border-pink-200 bg-pink-50/70 text-xs font-extrabold text-pharmaDark shadow-sm">
+          [${m.drug_name}]
+        </button>
+      `).join('');
+    }
+
+    function addDrugToPOSCart(sku) {
+      const med = appState.medicineStock.find(m => m.sku === sku);
+      if (!med) return;
+      const existing = appState.posCart.find(c => c.sku === sku);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        appState.posCart.push({
+          sku: med.sku,
+          drug_name: med.drug_name,
+          qty: 1,
+          price: Number(med.price) || 20000
+        });
+      }
+      renderPOSModule();
+    }
+
+    function importEPrescriptionToPOS() {
+      appState.posCart = [
+        { sku: "AMX001", drug_name: "Amoxicillin 500mg (2 strip)", qty: 2, price: 30000 },
+        { sku: "PCT005", drug_name: "Paracetamol Syrup (1 btl)", qty: 1, price: 25000 },
+        { sku: "VTC999", drug_name: "Vitamin C (10 tablet)", qty: 1, price: 15000 }
+      ];
+      document.getElementById('pos-discount-field').value = 10000;
+      renderPOSModule();
+      alert("Data e-Resep berhasil dimuat ke Daftar Obat & Resep POS!");
+    }
+
+    function recalculatePOS() {
+      const subtotal = appState.posCart.reduce((sum, item) => sum + ((Number(item.qty) || 1) * (Number(item.price) || 0)), 0);
+      const discount = Number(document.getElementById('pos-discount-field')?.value || 0);
+      const netTotal = Math.max(0, subtotal - discount);
+      const paid = Number(document.getElementById('pos-paid-field')?.value || 0);
+      const change = Math.max(0, paid - netTotal);
+
+      document.getElementById('pos-subtotal-display').innerText = 'Rp ' + subtotal.toLocaleString('id-ID');
+      document.getElementById('pos-net-display').innerText = 'Rp ' + netTotal.toLocaleString('id-ID');
+      document.getElementById('pos-change-display').innerText = 'Rp ' + change.toLocaleString('id-ID');
+    }
+
+    function setPOSPaymentMethod(method) {
+      selectedPOSPayment = method;
+      document.querySelectorAll('.pos-pay-btn').forEach(btn => {
+        btn.className = 'pos-pay-btn py-2.5 rounded-xl border border-pink-200';
+      });
+      const active = document.getElementById('btnpay-' + method);
+      if (active) {
+        active.className = 'pos-pay-btn py-2.5 rounded-xl border-2 border-pastelRose bg-pink-50 text-pink-900';
+      }
+    }
+
+    async function processPOSCheckout() {
+      if (appState.posCart.length === 0) {
+        alert("Daftar obat di keranjang POS masih kosong!");
+        return;
+      }
+      const subtotal = appState.posCart.reduce((sum, item) => sum + (item.qty * item.price), 0);
+      const discount = Number(document.getElementById('pos-discount-field').value || 0);
+      const netTotal = Math.max(0, subtotal - discount);
+      const paid = Number(document.getElementById('pos-paid-field').value || netTotal);
+      const customer = document.getElementById('pos-customer-name').value || 'Pelanggan Umum';
+
+      // Potong stok lokal secara otomatis
+      appState.posCart.forEach(cartItem => {
+        const med = appState.medicineStock.find(m => m.sku === cartItem.sku);
+        if (med) {
+          med.current_stock = Math.max(0, Number(med.current_stock) - Number(cartItem.qty));
+          if (med.current_stock <= 2) med.stock_status = "Kosong";
+          else if (med.current_stock <= 20) med.stock_status = "Kritis";
+          else if (med.current_stock <= 100) med.stock_status = "Menipis";
+          else med.stock_status = "Aman";
+        }
+      });
+
+      // Siapkan area cetak struk
+      document.getElementById('print-date-txt').innerText = new Date().toLocaleString('id-ID') + " | Metode: " + selectedPOSPayment;
+      document.getElementById('print-body-content').innerHTML = `
+        <p>Pasien/Pelanggan: <b>${customer}</b></p>
+        <hr class="my-2 border-dashed">
+        ${appState.posCart.map(i => `<div class="flex justify-between"><span>${i.drug_name} x${i.qty}</span><span>Rp ${(i.qty * i.price).toLocaleString('id-ID')}</span></div>`).join('')}
+        <hr class="my-2 border-dashed">
+        <div class="flex justify-between"><span>Subtotal:</span><span>Rp ${subtotal.toLocaleString('id-ID')}</span></div>
+        <div class="flex justify-between"><span>Diskon Resep:</span><span>- Rp ${discount.toLocaleString('id-ID')}</span></div>
+        <div class="flex justify-between font-bold text-sm"><span>TOTAL:</span><span>Rp ${netTotal.toLocaleString('id-ID')}</span></div>
+        <div class="flex justify-between"><span>Bayar (${selectedPOSPayment}):</span><span>Rp ${paid.toLocaleString('id-ID')}</span></div>
+        <div class="flex justify-between"><span>Kembali:</span><span>Rp ${Math.max(0, paid - netTotal).toLocaleString('id-ID')}</span></div>
+      `;
+
+      renderAll();
+      await sendPostRequest({
+        action: "processPOSTransaction",
+        patient_name: customer,
+        items: appState.posCart,
+        subtotal: subtotal,
+        discount: discount,
+        paid_amount: paid,
+        payment_method: selectedPOSPayment
+      });
+
+      alert(`Pembayaran Rp ${netTotal.toLocaleString('id-ID')} (${selectedPOSPayment}) Berhasil! Mencetak struk...`);
+      window.print();
+    }
+
+    // =======================================================================
+    // 5. LOGIKA STOK & GUDANG FARMASI (HALAMAN 6 PDF)
+    // =======================================================================
+    function renderStockModule() {
+      const q = (document.getElementById('stockSearchInput')?.value || '').toLowerCase();
+      const cat = document.getElementById('stockCategoryFilter')?.value || 'Semua';
+      const statusFilter = document.getElementById('stockWarehouseFilter')?.value || 'Semua';
+
+      const filtered = appState.medicineStock.filter(m => {
+        const matchQ = m.drug_name.toLowerCase().includes(q) || m.sku.toLowerCase().includes(q);
+        const matchCat = cat === 'Semua' || m.category === cat;
+        const matchStatus = statusFilter === 'Semua' || m.stock_status === statusFilter;
+        return matchQ && matchCat && matchStatus;
+      });
+
+      const tbody = document.getElementById('stockTableBody');
+      tbody.innerHTML = filtered.map((m, idx) => {
+        let badgeStyle = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        if (m.stock_status === 'Menipis') badgeStyle = 'bg-amber-100 text-amber-800 border-amber-300';
+        else if (m.stock_status === 'Kritis') badgeStyle = 'bg-orange-100 text-orange-800 border-orange-300';
+        else if (m.stock_status === 'Kosong') badgeStyle = 'bg-red-100 text-red-800 border-red-300';
+
+        return `
+          <tr>
+            <td class="py-3 px-3 font-extrabold text-pharmaDark">${idx + 1}. ${m.drug_name}</td>
+            <td class="py-3 px-3 font-mono text-xs font-extrabold text-pink-700">${m.sku}</td>
+            <td class="py-3 px-3 text-right font-extrabold">${Number(m.current_stock).toLocaleString('id-ID')}</td>
+            <td class="py-3 px-3 text-xs">${m.unit}</td>
+            <td class="py-3 px-3 text-xs font-bold text-teal-800">${m.rack_location}</td>
+            <td class="py-3 px-3 text-center">
+              <span class="px-3 py-0.5 rounded-full text-xs font-extrabold border ${badgeStyle}">${m.stock_status}</span>
+            </td>
+            <td class="py-3 px-3 text-xs text-gray-500">Exp: ${m.expiry_date}</td>
+            <td class="py-3 px-3 text-center">
+              <button onclick="editMedicineStock('${m.sku}')" class="px-2.5 py-1 rounded-lg bg-pink-50 hover:bg-pink-100 text-pink-700 text-xs font-bold">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openMedicineModal() {
+      document.getElementById('medicineModal').classList.remove('hidden');
+      document.getElementById('medicineModal').classList.add('flex');
+    }
+
+    function closeMedicineModal() {
+      document.getElementById('medicineModal').classList.add('hidden');
+      document.getElementById('medicineModal').classList.remove('flex');
+    }
+
+    function editMedicineStock(sku) {
+      const med = appState.medicineStock.find(m => m.sku === sku);
+      if (!med) return;
+      document.getElementById('med-sku').value = med.sku;
+      document.getElementById('med-name').value = med.drug_name;
+      document.getElementById('med-category').value = med.category;
+      document.getElementById('med-stock').value = med.current_stock;
+      document.getElementById('med-unit').value = med.unit;
+      document.getElementById('med-price').value = med.price || 20000;
+      document.getElementById('med-rack').value = med.rack_location;
+      document.getElementById('med-exp').value = med.expiry_date;
+      openMedicineModal();
+    }
+
+    async function handleSaveMedicineSubmit(e) {
+      e.preventDefault();
+      const qty = Number(document.getElementById('med-stock').value) || 0;
+      let status = "Aman";
+      if (qty <= 2) status = "Kosong";
+      else if (qty <= 20) status = "Kritis";
+      else if (qty <= 100) status = "Menipis";
+
+      const itemObj = {
+        sku: document.getElementById('med-sku').value.trim().toUpperCase(),
+        drug_name: document.getElementById('med-name').value.trim(),
+        category: document.getElementById('med-category').value,
+        current_stock: qty,
+        unit: document.getElementById('med-unit').value.trim(),
+        price: Number(document.getElementById('med-price').value) || 20000,
+        rack_location: document.getElementById('med-rack').value.trim(),
+        warehouse_location: "Gudang Utama",
+        stock_status: status,
+        expiry_date: document.getElementById('med-exp').value
+      };
+
+      const existingIdx = appState.medicineStock.findIndex(m => m.sku === itemObj.sku);
+      if (existingIdx !== -1) {
+        appState.medicineStock[existingIdx] = itemObj;
+      } else {
+        appState.medicineStock.push(itemObj);
+      }
+
+      closeMedicineModal();
+      renderAll();
+      await sendPostRequest({ action: "saveMedicineStock", ...itemObj });
+    }
+
+    // =======================================================================
+    // 6. LOGIKA MANAJEMEN USER & RBAC (HALAMAN 7 PDF)
+    // =======================================================================
+    function renderUsersModule() {
+      const q = (document.getElementById('userSearchInput')?.value || '').toLowerCase();
+      const filtered = appState.users.filter(u =>
+        u.full_name.toLowerCase().includes(q) || u.role.toLowerCase().includes(q)
+      );
+
+      const tbody = document.getElementById('usersTableBody');
+      tbody.innerHTML = filtered.map(u => {
+        const active = u.user_status === 'Aktif';
+        return `
+          <tr>
+            <td class="py-3 px-3 font-extrabold text-pharmaDark">${u.full_name}</td>
+            <td class="py-3 px-3 font-bold text-pink-700">${u.role}</td>
+            <td class="py-3 px-3 text-xs text-gray-600">${u.module_access}</td>
+            <td class="py-3 px-3 text-center">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'}">
+                ${u.user_status}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-center">
+              <button onclick="toggleUserActive('${u.user_id}')" class="px-2.5 py-1 rounded-lg border border-pink-200 hover:bg-pink-50 text-xs font-bold">
+                <i class="fa-solid fa-power-off mr-1"></i> Toggle
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      const counts = {};
+      appState.users.forEach(u => { counts[u.role] = (counts[u.role] || 0) + 1; });
+      const summaryBox = document.getElementById('roleSummaryContainer');
+      summaryBox.innerHTML = Object.keys(counts).map(role => `
+        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-pink-50/70 to-white border border-pink-200 flex justify-between items-center">
+          <div>
+            <p class="font-extrabold text-sm text-pharmaDark">${role}</p>
+            <p class="text-[11px] text-gray-500">Hak Akses Terverifikasi</p>
+          </div>
+          <span class="px-3 py-1 rounded-xl bg-white border border-pink-200 font-extrabold text-pink-600">${counts[role]} Akun</span>
+        </div>
+      `).join('');
+    }
+
+    async function openNewUserPrompt() {
+      const fullName = prompt("Nama Lengkap Petugas / User Baru:");
+      if (!fullName) return;
+      const role = prompt("Role / Jabatan (Administrator / Apoteker / Dokter / Kasir / Gudang):", "Apoteker");
+      const access = prompt("Akses Modul:", "POS, Stok");
+      const newUser = {
+        user_id: "USR-0" + (appState.users.length + 1),
+        full_name: fullName,
+        role: role || "Apoteker",
+        module_access: access || "POS, Stok",
+        user_status: "Aktif"
+      };
+      appState.users.push(newUser);
+      renderAll();
+      await sendPostRequest({ action: "saveUser", ...newUser });
+    }
+
+    async function toggleUserActive(userId) {
+      const u = appState.users.find(x => x.user_id === userId);
+      if (!u) return;
+      u.user_status = u.user_status === 'Aktif' ? 'Tidak Aktif' : 'Aktif';
+      renderAll();
+      await sendPostRequest({ action: "toggleUserStatus", user_id: userId });
+    }
+
+    // =======================================================================
+    // 7. INTEGRASI FETCH KE GOOGLE APPS SCRIPT (CODE.GS)
+    // =======================================================================
+    async function syncWithBackend() {
+      if (!PHARMA_GAS_URL) {
+        openConfigModal();
+        return;
+      }
+      try {
+        const response = await fetch(PHARMA_GAS_URL + "?action=init");
+        const result = await response.json();
+        if (result.status === "success" && result.data) {
+          if (result.data.patientsQueue?.length) appState.patientsQueue = result.data.patientsQueue;
+          if (result.data.medicineStock?.length) appState.medicineStock = result.data.medicineStock;
+          if (result.data.supportingExams?.length) appState.supportingExams = result.data.supportingExams;
+          if (result.data.users?.length) appState.users = result.data.users;
+
+          const badge = document.getElementById('connBadge');
+          badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300";
+          badge.innerHTML = '<i class="fa-solid fa-cloud-check mr-1"></i> Terhubung ke Google Sheets';
+          renderAll();
+        }
+      } catch (err) {
+        console.warn("Berjalan dalam mode simulasi lokal:", err);
+      }
+    }
+
+    async function sendPostRequest(payload) {
+      if (!PHARMA_GAS_URL) return;
+      try {
+        await fetch(PHARMA_GAS_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn("Gagal mengirim data ke GAS:", err);
+      }
+    }
+
+    function openConfigModal() {
+      document.getElementById('inputPharmaGasUrl').value = PHARMA_GAS_URL;
+      document.getElementById('configModal').classList.remove('hidden');
+      document.getElementById('configModal').classList.add('flex');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').classList.add('hidden');
+      document.getElementById('configModal').classList.remove('flex');
+    }
+
+    function saveApiConfig() {
+      PHARMA_GAS_URL = document.getElementById('inputPharmaGasUrl').value.trim();
+      localStorage.setItem('AANG_PHARMA_GAS_URL', PHARMA_GAS_URL);
+      closeConfigModal();
+      if (PHARMA_GAS_URL) syncWithBackend();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAll();
+      if (PHARMA_GAS_URL) syncWithBackend();
+    });
+  </script>
+</body>
+</html>
