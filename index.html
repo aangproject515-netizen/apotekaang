@@ -867,7 +867,7 @@
 
   <!-- SCRIPT UTAMA PHARMA DENGAN SUPER ADMIN & RBAC -->
   <script>
-    const DEFAULT_PHARMA_GAS_URL = 'https://script.google.com/macros/s/AKfycbwRQ5BJTMEEiUIzvzrClmK0afHpRdQHjZ3t2IblPDgrirzJ45Wmk1Ae__-72ArbqfNnnA/exec';
+    const DEFAULT_PHARMA_GAS_URL = 'https://script.google.com/macros/s/AKfycbwfhWeM3qL7SkdRIjPSi1ZFbdmfVURMp0x7M9d7j78cjpBEB9vNfQxzZCA-lnW3c1E6_Q/exec';
     let PHARMA_GAS_URL = localStorage.getItem('AANG_PHARMA_GAS_URL') || DEFAULT_PHARMA_GAS_URL;
     let selectedPOSPayment = 'Tunai';
     let currentLoggedInUser = JSON.parse(sessionStorage.getItem('AANG_PHARMA_ACTIVE_USER') || 'null');
@@ -1007,7 +1007,7 @@
       if (!selectEl) return;
       const activeUsers = appState.users.filter(u => u.user_status === 'Aktif');
       const listToUse = activeUsers.length > 0 ? activeUsers : appState.users;
-      selectEl.innerHTML = listToUse.map(u => `<option value="${u.user_id}">${u.full_name} â€” [${u.role}]</option>`).join('');
+      selectEl.innerHTML = listToUse.map(u => `<option value="${u.user_id}">${u.full_name} - [${u.role}]</option>`).join('');
 
       const quickContainer = document.getElementById('quickRoleButtonsContainer');
       if (quickContainer) {
@@ -1177,7 +1177,7 @@ Akses modul ini khusus untuk: ${cfg.features.join(', ')}.`);
       grid.innerHTML = appState.patientsQueue.map(p => `
         <div class="p-3.5 rounded-2xl border border-pink-200 bg-pink-50/40 text-xs">
           <p class="font-extrabold text-sm text-pharmaDark">${p.full_name}</p>
-          <p class="text-gray-600">RM: ${p.patient_id} â€¢ ${p.queue_number}</p>
+          <p class="text-gray-600">RM: ${p.patient_id} - ${p.queue_number}</p>
         </div>
       `).join('');
     }
