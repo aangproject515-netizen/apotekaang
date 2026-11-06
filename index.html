@@ -82,7 +82,7 @@
     <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center gap-3">
         <div class="w-16 h-16 rounded-2xl bg-white border-2 border-pastelRose flex items-center justify-center shadow-sm overflow-hidden shrink-0">
-          <img src="logo_pharma.png" alt="Logo Aang's Pharma" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+          <img src="logo-aangs-pharma.png" alt="Logo Aang's Pharma" class="w-full h-full object-cover scale-110" onerror="if(!this.dataset.jpg){this.dataset.jpg=1;this.src='logo-aangs-pharma.jpg';}else{this.style.display='none';this.nextElementSibling.classList.remove('hidden');}">
           <i class="fa-solid fa-mortar-pestle text-2xl text-pastelRose hidden"></i>
         </div>
         <div>
@@ -149,7 +149,7 @@
         <div class="pastel-card p-6 bg-gradient-to-br from-pink-50 via-white to-teal-50">
           <div class="flex flex-col sm:flex-row items-center gap-5">
             <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl border-2 border-pink-200 shadow-md bg-white overflow-hidden flex items-center justify-center shrink-0">
-              <img src="logo_pharma.png" alt="Logo Aang's Pharma" class="w-full h-full object-contain scale-110" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+              <img src="logo-aangs-pharma.png" alt="Logo Aang's Pharma" class="w-full h-full object-contain scale-110" onerror="if(!this.dataset.jpg){this.dataset.jpg=1;this.src='logo-aangs-pharma.jpg';}else{this.style.display='none';this.nextElementSibling.classList.remove('hidden');}">
               <div class="hidden text-center p-3">
                 <i class="fa-solid fa-user-doctor text-5xl text-pastelRose"></i>
                 <p class="text-[11px] font-extrabold text-pharmaDark mt-2">AANG'S PHARMA</p>
@@ -173,7 +173,7 @@
             </div>
             <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-sm">
               <span class="text-xs text-gray-500 font-bold">Total Item Obat (SKU)</span>
-              <p id="stat-stock-count" class="text-2xl font-extrabold text-amber-600 mt-1">9 SKU</p>
+              <p id="stat-stock-count" class="text-2xl font-extrabold text-amber-600 mt-1">10 SKU</p>
             </div>
             <div class="bg-white p-4 rounded-2xl border border-purple-200 shadow-sm">
               <span class="text-xs text-gray-500 font-bold">Petugas Aktif</span>
@@ -182,62 +182,62 @@
           </div>
         </div>
 
-        <!-- 6 Kartu Modul Portal Sesuai Halaman 1 PDF -->
+        <!-- 6 Kartu Modul Portal Sesuai Nama File Asli Anda -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <!-- Modul 1 -->
+          <!-- Modul 1: 01-manajemen-pasien-antrean.png -->
           <div onclick="switchTab('antrean')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
             <div class="card-img-wrapper mb-3 border border-pink-100 shadow-inner">
-              <img src="01-manajemen-pasien.png" alt="Manajemen Pasien & Antrean" onerror="this.style.display='none';">
+              <img src="01-manajemen-pasien-antrean.png" alt="Manajemen Pasien & Antrean" onerror="if(!this.dataset.jpg){this.dataset.jpg=1;this.src='01-manajemen-pasien-antrean.jpg';}else{this.style.display='none';}">
               <i class="fa-solid fa-hospital-user text-6xl text-pastelRose group-hover:scale-110 transition"></i>
             </div>
             <h3 class="text-lg font-extrabold">Manajemen Pasien & Antrean</h3>
             <p class="text-xs text-gray-500 mt-1">Pemanggilan antrean pasien (A015-A017), registrasi pasien baru, riwayat kunjungan, & cetak tiket.</p>
           </div>
 
-          <!-- Modul 2 -->
+          <!-- Modul 2: 02-e-prescribing-resep-elektronik.png -->
           <div onclick="switchTab('eprescribing')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
             <div class="card-img-wrapper mb-3 border border-amber-100 shadow-inner">
-              <img src="02-eprescribing.png" alt="e-Prescribing" onerror="this.style.display='none';">
+              <img src="02-e-prescribing-resep-elektronik.png" alt="e-Prescribing" onerror="if(!this.dataset.jpg){this.dataset.jpg=1;this.src='02-e-prescribing-resep-elektronik.jpg';}else{this.style.display='none';}">
               <i class="fa-solid fa-file-prescription text-6xl text-amber-500 group-hover:scale-110 transition"></i>
             </div>
             <h3 class="text-lg font-extrabold">e-Prescribing (Resep Elektronik)</h3>
             <p class="text-xs text-gray-500 mt-1">Pencatatan resep dokter (R/), aturan pakai signa, riwayat alergi pasien, & pengiriman resep ke POS.</p>
           </div>
 
-          <!-- Modul 3 -->
+          <!-- Modul 3: 03-pemeriksaan-penunjang.png -->
           <div onclick="switchTab('penunjang')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
             <div class="card-img-wrapper mb-3 border border-purple-100 shadow-inner">
-              <img src="03-pemeriksaan-penunjang.png" alt="Pemeriksaan Penunjang" onerror="this.style.display='none';">
+              <img src="03-pemeriksaan-penunjang.png" alt="Pemeriksaan Penunjang" onerror="if(!this.dataset.jpg){this.dataset.jpg=1;this.src='03-pemeriksaan-penunjang.jpg';}else{this.style.display='none';}">
               <i class="fa-solid fa-microscope text-6xl text-purple-500 group-hover:scale-110 transition"></i>
             </div>
             <h3 class="text-lg font-extrabold">Pemeriksaan Penunjang</h3>
             <p class="text-xs text-gray-500 mt-1">Hasil Darah Lengkap (CBC), X-Ray Thorax, EKG, terhubung langsung dengan modul pembuatan resep.</p>
           </div>
 
-          <!-- Modul 4 -->
+          <!-- Modul 4: 04-point-of-sales-pos-apotek.png -->
           <div onclick="switchTab('pos')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
             <div class="card-img-wrapper mb-3 border border-teal-100 shadow-inner">
-              <img src="04-pos-apotek.png" alt="Point of Sales Apotek" onerror="this.style.display='none';">
+              <img src="04-point-of-sales-pos-apotek.png" alt="Point of Sales Apotek" onerror="if(!this.dataset.jpg){this.dataset.jpg=1;this.src='04-point-of-sales-pos-apotek.jpg';}else{this.style.display='none';}">
               <i class="fa-solid fa-cash-register text-6xl text-teal-600 group-hover:scale-110 transition"></i>
             </div>
             <h3 class="text-lg font-extrabold">Point of Sales (POS) Apotek</h3>
             <p class="text-xs text-gray-500 mt-1">Transaksi penjualan obat & tebus resep elektronik, diskon resep, pembayaran Tunai/Debit/QRIS & struk.</p>
           </div>
 
-          <!-- Modul 5 -->
+          <!-- Modul 5: 05-stok-gudang-farmasi.png -->
           <div onclick="switchTab('stok')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
             <div class="card-img-wrapper mb-3 border border-rose-100 shadow-inner">
-              <img src="05-stok-gudang.png" alt="Stok & Gudang Farmasi" onerror="this.style.display='none';">
+              <img src="05-stok-gudang-farmasi.png" alt="Stok & Gudang Farmasi" onerror="if(!this.dataset.jpg){this.dataset.jpg=1;this.src='05-stok-gudang-farmasi.jpg';}else{this.style.display='none';}">
               <i class="fa-solid fa-clipboard-list text-6xl text-rose-500 group-hover:scale-110 transition"></i>
             </div>
             <h3 class="text-lg font-extrabold">Stok & Gudang Farmasi</h3>
             <p class="text-xs text-gray-500 mt-1">Monitoring SKU obat, lokasi rak gudang, status stok (Aman, Menipis, Kritis, Kosong) & tanggal kedaluwarsa.</p>
           </div>
 
-          <!-- Modul 6 -->
+          <!-- Modul 6: 06-manajemen-user.png -->
           <div onclick="switchTab('users')" class="pastel-card p-5 cursor-pointer hover:-translate-y-1 transition group flex flex-col items-center text-center">
             <div class="card-img-wrapper mb-3 border border-indigo-100 shadow-inner">
-              <img src="06-manajemen-user.png" alt="Manajemen User" onerror="this.style.display='none';">
+              <img src="06-manajemen-user.png" alt="Manajemen User" onerror="if(!this.dataset.jpg){this.dataset.jpg=1;this.src='06-manajemen-user.jpg';}else{this.style.display='none';}">
               <i class="fa-solid fa-users-gear text-6xl text-indigo-500 group-hover:scale-110 transition"></i>
             </div>
             <h3 class="text-lg font-extrabold">Manajemen User</h3>
@@ -841,7 +841,8 @@
   <!-- JAVASCRIPT UTAMA AANG'S PHARMA                                        -->
   <!-- ===================================================================== -->
   <script>
-    let PHARMA_GAS_URL = localStorage.getItem('https://script.google.com/macros/s/AKfycbyLtGFEpXkrqgEp3OZ3uqznLk8iyor_tSQ_JY_5a1xhtV9cB5f2pWWDn4NFDFX7oCv7rg/exec') || '';
+    const DEFAULT_PHARMA_GAS_URL = 'https://script.google.com/macros/s/AKfycbyLtGFEpXkrqgEp3OZ3uqznLk8iyor_tSQ_JY_5a1xhtV9cB5f2pWWDn4NFDFX7oCv7rg/exec';
+    let PHARMA_GAS_URL = localStorage.getItem('AANG_PHARMA_GAS_URL') || DEFAULT_PHARMA_GAS_URL;
     let selectedPOSPayment = 'Tunai';
 
     let appState = {
